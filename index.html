@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Réclamations">
+<title>Rapport Réclamations</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;background:#F2F2F7;color:#1C1C1E;min-height:100vh;-webkit-font-smoothing:antialiased}
+:root{--blue:#1565C0;--blue-dark:#0D47A1;--blue-light:#E3F2FD;--red:#FF3B30;--green:#34C759;--gray:#8E8E93;--border:#E5E5EA;--card:#FFFFFF;--shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.06)}
+.app{max-width:430px;margin:0 auto;padding:0 0 100px;min-height:100vh}
+.header{background:linear-gradient(160deg,#1565C0 0%,#0D47A1 100%);color:#fff;padding:20px 16px 0;text-align:center;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(13,71,161,.35)}
+.header h1{font-size:17px;font-weight:700;letter-spacing:.3px}
+.header p{font-size:12px;opacity:.75;margin-top:2px}
+.tab-bar{display:flex;margin-top:14px}
+.tab{flex:1;padding:10px 0;font-size:13px;font-weight:600;color:rgba(255,255,255,.55);border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;transition:.2s}
+.tab.active{color:#fff;border-bottom-color:#fff}
+.steps{display:flex;justify-content:center;gap:5px;padding:12px 0 4px}
+.step-dot{width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,.28);transition:.3s}
+.step-dot.active{background:#fff}
+.step-dot.done{background:rgba(255,255,255,.65)}
+.section{background:var(--card);border-radius:14px;margin:12px;padding:16px;box-shadow:var(--shadow)}
+.section-title{font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+label{display:block;font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+input[type=text],input[type=date],select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:#1C1C1E;background:#FAFAFA;font-family:inherit;-webkit-appearance:none;transition:.15s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+.field{margin-bottom:13px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238E8E93'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:32px}
+select:disabled{opacity:.45;background-color:#F2F2F7}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.12s;font-family:inherit}
+.btn:active{transform:scale(.96)}
+.btn-black{background:#1C1C1E;color:#fff}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-ghost{background:var(--card);color:#1C1C1E;border:1.5px solid var(--border)}
+.btn-success{background:#34C759;color:#fff}
+.btn-sm{padding:9px 16px;font-size:13px;width:auto;border-radius:10px}
+.nav-row{margin:0 12px;display:flex;gap:8px}
+.back-btn{flex:0 0 auto;width:50px;padding:14px 0}
+.rec-card{border:1.5px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.rec-card-head{background:#F8F9FA;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
+.rec-card-title{font-size:13px;font-weight:700;color:var(--blue)}
+.rec-card-body{padding:14px}
+.photo-zone{border:2px dashed var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:#FAFAFA;position:relative;margin:10px 0;min-height:68px}
+.photo-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.pz-icon{font-size:26px;margin-bottom:3px}
+.photo-zone p{font-size:12px;color:var(--gray)}
+.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.photo-item{position:relative}
+.photo-item img{width:100%;height:88px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border);display:block}
+.del-photo{position:absolute;top:4px;right:4px;background:rgba(255,59,48,.88);border:none;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;padding:0}
+.add-rec-btn{border:2px dashed #C7C7CC;background:transparent;color:var(--gray);padding:13px;border-radius:12px;width:100%;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;font-family:inherit}
+.sig-wrap{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
+.sig-wrap canvas{display:block;width:100%;height:140px;touch-action:none}
+.sig-lbl{font-size:11px;color:var(--gray);text-align:center;padding:7px;background:#F8F9FA;border-top:1px solid var(--border)}
+.sig-actions{display:flex;gap:8px;margin:8px 0 16px}
+.sig-sep{text-align:center;font-size:11px;color:var(--gray);margin:14px 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.main-page{display:none}.main-page.active{display:block}
+.sub-page{display:none}.sub-page.active{display:block}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:600;opacity:0;transition:.3s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.28)}
+.toast.show{opacity:1}
+.sum-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:13px;gap:8px}
+.sum-row:last-child{border-bottom:none}
+.sum-key{color:var(--gray);flex-shrink:0}
+.sum-val{font-weight:600;text-align:right}
+
+/* ── OBSERVATIONS ── */
+.obs-block{margin-bottom:14px}
+.obs-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.obs-label{font-size:13px;font-weight:700;color:#1C1C1E}
+.obs-check-row{display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer}
+.obs-check-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+.obs-check-row span{font-size:13px;color:var(--gray)}
+.obs-annotation{background:#FFF8E1;border:1.5px solid #FFE082;border-radius:10px;padding:10px 13px;font-size:13px;color:#795548;margin-top:10px;line-height:1.5}
+
+/* ── HISTORIQUE ── */
+.hist-header{padding:20px 16px 8px}
+.hist-header h2{font-size:22px;font-weight:700;color:#1C1C1E}
+.hist-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 16px 4px}
+.stat-card{background:var(--card);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat-label{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.stat-value{font-size:22px;font-weight:700;color:#1C1C1E}
+.hist-list{padding:4px 0}
+.hist-item{background:var(--card);border-radius:14px;margin:8px 16px;padding:16px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:.12s}
+.hist-item:active{transform:scale(.98);opacity:.85}
+.hist-icon{width:48px;height:48px;border-radius:12px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px}
+.hist-info{flex:1;min-width:0}
+.hist-client{font-size:16px;font-weight:700;color:#1C1C1E;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{font-size:13px;color:var(--gray)}
+.hist-right{text-align:right;flex-shrink:0}
+.hist-nb{font-size:15px;font-weight:700;color:#1C1C1E}
+.hist-date{font-size:12px;color:var(--gray);margin-top:1px}
+.hist-empty{text-align:center;padding:60px 24px;color:var(--gray)}
+.hist-empty-icon{font-size:52px;margin-bottom:14px}
+
+/* ── BOTTOM SHEET ── */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none;align-items:flex-end;justify-content:center}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--card);border-radius:22px 22px 0 0;width:100%;max-width:430px;max-height:92vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,16px)}
+.sheet-handle{width:36px;height:4px;background:#C7C7CC;border-radius:2px;margin:12px auto 0}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px}
+.sheet-title{font-size:18px;font-weight:700;color:#1C1C1E}
+.sheet-close{background:#F2F2F7;border:none;color:#1C1C1E;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-weight:600}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border)}
+.detail-key{display:flex;align-items:center;gap:10px;font-size:15px;color:#1C1C1E}
+.detail-key-icon{width:28px;height:28px;border-radius:7px;background:#F2F2F7;display:flex;align-items:center;justify-content:center;font-size:14px}
+.detail-val{font-size:15px;font-weight:600;color:#1C1C1E}
+.sheet-photos{display:flex;gap:8px;overflow-x:auto;padding:12px 20px;scrollbar-width:none}
+.sheet-photos::-webkit-scrollbar{display:none}
+.sheet-photos img{width:90px;height:90px;object-fit:cover;border-radius:10px;flex-shrink:0;border:1.5px solid var(--border)}
+.sheet-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:20px 20px 12px}
+.sheet-action{display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;cursor:pointer;padding:0}
+.sa-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.sa-label{font-size:12px;font-weight:600;color:#1C1C1E}
+.icon-black{background:#1C1C1E}
+.icon-light{background:#F2F2F7}
+.icon-red{background:#FFE5E3}
+
+/* ── VUE PDF ── */
+.pdf-overlay{position:fixed;inset:0;background:#F2F2F7;z-index:500;display:none;flex-direction:column}
+.pdf-overlay.open{display:flex}
+.pdf-nav{display:flex;align-items:center;gap:12px;padding:14px 16px 10px;background:var(--card);border-bottom:1px solid var(--border)}
+.pdf-nav-back{background:#F2F2F7;border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.pdf-nav-title{flex:1;font-size:16px;font-weight:700;color:#1C1C1E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pdf-body{flex:1;overflow-y:auto;padding:16px}
+.pdf-doc{background:#fff;border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
+.pdf-doc-header{background:#1565C0;padding:24px 20px 20px;color:#fff}
+.pdf-doc-title{font-size:20px;font-weight:800;letter-spacing:.3px;margin-bottom:2px}
+.pdf-doc-sub{font-size:12px;opacity:.8}
+.pdf-doc-ref{font-size:11px;opacity:.65;margin-top:8px}
+.pdf-section{padding:16px 20px;border-bottom:1px solid var(--border)}
+.pdf-section:last-child{border-bottom:none}
+.pdf-section-label{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.pdf-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pdf-info-cell{background:#F8F9FA;border-radius:8px;padding:10px 12px}
+.pdf-info-cell .pk{font-size:11px;color:var(--gray);margin-bottom:2px}
+.pdf-info-cell .pv{font-size:14px;font-weight:700;color:#1C1C1E}
+.pdf-rec{background:#F8F9FA;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.pdf-rec-head{background:#1565C0;color:#fff;padding:9px 14px;font-size:13px;font-weight:700}
+.pdf-rec-body{padding:12px 14px}
+.pdf-rec-obs{font-size:13px;color:#3A3A3C;line-height:1.55;margin-bottom:8px}
+.pdf-rec-photos{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pdf-rec-photos img{width:100%;height:80px;object-fit:cover;border-radius:8px}
+.pdf-obs-box{background:#F8F9FA;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.pdf-obs-box .pok{font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px}
+.pdf-obs-box .pov{font-size:13px;color:#1C1C1E;line-height:1.5}
+.pdf-obs-box .pov.none{color:var(--gray);font-style:italic}
+.pdf-sig-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pdf-sig-box{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.pdf-sig-box img{width:100%;height:68px;object-fit:contain;background:#fff;display:block}
+.pdf-sig-lbl{font-size:10px;color:var(--gray);text-align:center;padding:5px;background:#F8F9FA;border-top:1px solid var(--border)}
+.pdf-sig-note{font-size:11px;color:#795548;background:#FFF8E1;border:1px solid #FFE082;border-radius:6px;padding:6px 10px;margin-top:6px;line-height:1.4}
+.pdf-footer-bar{font-size:10px;color:var(--gray);text-align:center;padding:10px;background:#F8F9FA;border-top:1px solid var(--border)}
+.pdf-action-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px;background:var(--card);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <h1>📋 Rapport Réclamations</h1>
+  <p>Gestion des désordres &amp; visites client</p>
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('nouveau')">Nouveau</button>
+    <button class="tab" id="tab-hist" onclick="switchTab('historique')">Historique</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- BOTTOM SHEET -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <span class="sheet-title" id="sheetTitle">Rapport</span>
+      <button class="sheet-close" onclick="closeSheetDirect()">✕</button>
+    </div>
+    <div id="sheetContent"></div>
+    <div class="sheet-actions" id="sheetActions"></div>
+  </div>
+</div>
+
+<!-- VUE PDF -->
+<div class="pdf-overlay" id="pdfOverlay">
+  <div class="pdf-nav">
+    <button class="pdf-nav-back" onclick="closePdfView()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1C1E" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <span class="pdf-nav-title" id="pdfNavTitle">Rapport</span>
+  </div>
+  <div class="pdf-body" id="pdfBody"></div>
+  <div class="pdf-action-bar">
+    <button class="btn btn-ghost" onclick="doDownload()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Télécharger
+    </button>
+    <button class="btn btn-black" onclick="doShare()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      Partager / Envoyer
+    </button>
+  </div>
+</div>
+
+<!-- ══ ONGLET NOUVEAU ══ -->
+<div class="main-page active" id="tab-nouveau">
+  <div class="steps">
+    <div class="step-dot active" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+  </div>
+
+  <!-- Page 0 : Infos -->
+  <div class="sub-page active" id="page0">
+    <div class="section">
+      <div class="section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Infos de la visite
+      </div>
+      <div class="field"><label>Date de la visite</label><input type="date" id="dateVisite"></div>
+      <div class="field"><label>Nom du vendeur</label><input type="text" id="vendeurNom" placeholder="Nom du vendeur" autocomplete="off"></div>
+      <div class="row">
+        <div class="field"><label>Prénom client</label><input type="text" id="clientPrenom" placeholder="Prénom" autocomplete="off"></div>
+        <div class="field"><label>Nom client</label><input type="text" id="clientNom" placeholder="Nom" autocomplete="off"></div>
+      </div>
+      <div class="field"><label>Adresse du chantier</label><input type="text" id="adresse" placeholder="Adresse complète" autocomplete="off"></div>
+    </div>
+    <div style="margin:0 12px">
+      <button class="btn btn-primary" onclick="goPage(1)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Saisir les réclamations
+      </button>
+    </div>
+  </div>
+
+  <!-- Page 1 : Réclamations -->
+  <div class="sub-page" id="page1">
+    <div class="section">
+      <div class="section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="#1565C0"/></svg>
+        Désordres &amp; réclamations
+      </div>
+      <div id="reclamations-list"></div>
+      <button class="add-rec-btn" onclick="addReclamation()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Ajouter une réclamation
+      </button>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-ghost back-btn" onclick="goPage(0)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <button class="btn btn-primary" onclick="goPage(2)" style="flex:1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Observations générales
+      </button>
+    </div>
+  </div>
+
+  <!-- Page 2 : Observations générales -->
+  <div class="sub-page" id="page2">
+    <div class="section">
+      <div class="section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Observations générales
+      </div>
+
+      <!-- Vendeur -->
+      <div class="obs-block">
+        <div class="obs-header">
+          <span class="obs-label">👤 Observation du vendeur</span>
+        </div>
+        <textarea id="obsVendeur" rows="4" placeholder="Observations du vendeur…" oninput="syncObsVendeur()"></textarea>
+        <label class="obs-check-row" for="obsVendeurNone">
+          <input type="checkbox" id="obsVendeurNone" onchange="toggleObs('vendeur')">
+          <span>Le vendeur n'a pas d'observation</span>
+        </label>
+      </div>
+
+      <!-- Client -->
+      <div class="obs-block">
+        <div class="obs-header">
+          <span class="obs-label">🏠 Observation du client</span>
+        </div>
+        <textarea id="obsClient" rows="4" placeholder="Observations du client…" oninput="syncObsClient()"></textarea>
+        <label class="obs-check-row" for="obsClientNone">
+          <input type="checkbox" id="obsClientNone" onchange="toggleObs('client')">
+          <span>Le client n'a pas d'observation</span>
+        </label>
+      </div>
+
+      <div class="obs-annotation" id="obsAnnotation" style="display:none"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-ghost back-btn" onclick="goPage(1)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <button class="btn btn-primary" onclick="goPage(3)" style="flex:1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Signatures &amp; finalisation
+      </button>
+    </div>
+  </div>
+
+  <!-- Page 3 : Signatures -->
+  <div class="sub-page" id="page3">
+    <div class="section">
+      <div class="section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Signatures
+      </div>
+
+      <!-- Annotation observations dans l'écran signature -->
+      <div id="sigObsNote" style="margin-bottom:14px"></div>
+
+      <label>Signature du vendeur</label>
+      <div class="sig-wrap"><canvas id="sigVendeur" width="800" height="280"></canvas><div class="sig-lbl">Signez ici — vendeur</div></div>
+      <div class="sig-actions"><button class="btn btn-ghost btn-sm" onclick="clearSig('sigVendeur')">✕ Effacer</button></div>
+      <div class="sig-sep">— Signature client —</div>
+      <label>Signature du client</label>
+      <div class="sig-wrap"><canvas id="sigClient" width="800" height="280"></canvas><div class="sig-lbl">Signez ici — client</div></div>
+      <div class="sig-actions"><button class="btn btn-ghost btn-sm" onclick="clearSig('sigClient')">✕ Effacer</button></div>
+    </div>
+    <div style="margin:0 12px">
+      <div class="section" style="margin:0 0 12px;background:#E8F5E9;border:1.5px solid #A5D6A7"><div id="resume-rapide"></div></div>
+      <div class="nav-row" style="margin:0 0 10px">
+        <button class="btn btn-ghost back-btn" onclick="goPage(2)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <button class="btn btn-success" onclick="generateAndSave()" style="flex:1">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Générer &amp; sauvegarder
+        </button>
+      </div>
+      <button class="btn btn-ghost" onclick="resetAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 101.85-7.72L1 10"/></svg>
+        &nbsp;Nouveau rapport
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ONGLET HISTORIQUE ══ -->
+<div class="main-page" id="tab-historique-page">
+  <div id="history-content"></div>
+</div>
+
+</div><!-- .app -->
+
+<script>
+/* ══ DONNÉES TYPES DÉSORDRES ══ */
+const CATEGORIES = {
+  'Meuble': {
+    label: 'Meuble',
+    level2: { label: 'Nature du désordre', options: ['Éclat','Fissure','Revêtement','Tâche','Autre'], hasOther: true },
+    level3: null
+  },
+  'Électroménager': {
+    label: 'Électroménager',
+    level2: { label: "Type d'appareil", options: ['Cave à vin','Congélateur','Four','Frigo','Hotte','Lave-vaisselle','Micro-ondes','Piano','Plaque','Autre à préciser'], hasOther: true },
+    level3: { label: 'Nature du désordre', options: ['Dysfonctionnement','Éclat','Rayure','Autre'], hasOther: true }
+  },
+  'Sanitaire': {
+    label: 'Sanitaire',
+    level2: { label: 'Nature du désordre', options: ['Éclat','Rayure','Tâche','Autre à préciser'], hasOther: true },
+    level3: null
+  },
+  'Livraison': {
+    label: 'Livraison',
+    level2: null, level3: null, freeText: true
+  },
+  'Pose': {
+    label: 'Pose',
+    level2: null, level3: null, freeText: true
+  },
+  'Autre': {
+    label: 'Autre',
+    level2: null, level3: null, freeText: true
+  }
+};
+
+const MAX=10;
+let reclamations=[];
+let sigCtx={},sigDrawing={};
+let currentPdfId=null;
+
+/* ══ TABS / PAGES ══ */
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='nouveau'?0:1)));
+  document.querySelectorAll('.main-page').forEach((el,i)=>el.classList.toggle('active',i===(t==='nouveau'?0:1)));
+  if(t==='historique')renderHistory();
+  window.scrollTo(0,0);
+}
+
+function goPage(n){
+  document.querySelectorAll('.sub-page').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.step-dot').forEach((d,i)=>{d.classList.toggle('active',i===n);d.classList.toggle('done',i<n);});
+  if(n===2) updateObsAnnotation();
+  if(n===3){buildResume();initAllSigs();buildSigObsNote();}
+  window.scrollTo(0,0);
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+/* ══ OBSERVATIONS ══ */
+function toggleObs(who){
+  const cb=document.getElementById('obsVendeurNone'+(who==='vendeur'?'':'').replace('vendeur','')+'');
+  // use proper IDs
+  const cbId=who==='vendeur'?'obsVendeurNone':'obsClientNone';
+  const taId=who==='vendeur'?'obsVendeur':'obsClient';
+  const checked=document.getElementById(cbId).checked;
+  const ta=document.getElementById(taId);
+  if(checked){ta.value='';ta.disabled=true;ta.style.opacity='.4';}
+  else{ta.disabled=false;ta.style.opacity='1';}
+  updateObsAnnotation();
+}
+
+function syncObsVendeur(){updateObsAnnotation();}
+function syncObsClient(){updateObsAnnotation();}
+
+function updateObsAnnotation(){
+  const vNone=document.getElementById('obsVendeurNone').checked;
+  const cNone=document.getElementById('obsClientNone').checked;
+  const vText=(document.getElementById('obsVendeur').value||'').trim();
+  const cText=(document.getElementById('obsClient').value||'').trim();
+  const ann=document.getElementById('obsAnnotation');
+  let lines=[];
+  if(vNone) lines.push('✅ Vendeur : aucune observation');
+  else if(vText) lines.push('📝 Vendeur : observation saisie');
+  if(cNone) lines.push('✅ Client : aucune observation');
+  else if(cText) lines.push('📝 Client : observation saisie');
+  if(lines.length){ann.innerHTML='<strong>Récapitulatif observations :</strong><br>'+lines.join('<br>');ann.style.display='block';}
+  else{ann.style.display='none';}
+}
+
+function buildSigObsNote(){
+  const vNone=document.getElementById('obsVendeurNone').checked;
+  const cNone=document.getElementById('obsClientNone').checked;
+  const vText=(document.getElementById('obsVendeur').value||'').trim();
+  const cText=(document.getElementById('obsClient').value||'').trim();
+  const el=document.getElementById('sigObsNote');
+  let parts=[];
+  if(vNone) parts.push('Vendeur : <strong>aucune observation</strong>');
+  else if(vText) parts.push('Vendeur : <strong>observation renseignée</strong>');
+  else parts.push('Vendeur : <em>aucune saisie</em>');
+  if(cNone) parts.push('Client : <strong>aucune observation</strong>');
+  else if(cText) parts.push('Client : <strong>observation renseignée</strong>');
+  else parts.push('Client : <em>aucune saisie</em>');
+  el.innerHTML=`<div class="obs-annotation">📋 <strong>Observations :</strong><br>${parts.join('<br>')}</div>`;
+}
+
+/* ══ RECLAMATIONS ══ */
+function addReclamation(){
+  reclamations.push({id:'r'+Date.now(),categorie:'',level2:'',level3:'',freeText:'',freeTextL3:'',obs:'',photos:[]});
+  renderReclamations();
+  setTimeout(()=>{const c=document.querySelectorAll('.rec-card');if(c.length)c[c.length-1].scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+function removeReclamation(id){reclamations=reclamations.filter(r=>r.id!==id);renderReclamations();}
+function updateRec(id,key,val){const r=reclamations.find(x=>x.id===id);if(r){r[key]=val;}}
+
+function onCatChange(id,val){
+  const r=reclamations.find(x=>x.id===id);
+  if(!r)return;
+  r.categorie=val;r.level2='';r.level3='';r.freeText='';r.freeTextL3='';
+  renderReclamations();
+}
+function onL2Change(id,val){
+  const r=reclamations.find(x=>x.id===id);
+  if(!r)return;
+  r.level2=val;r.level3='';r.freeTextL3='';
+  renderReclamations();
+}
+
+function renderReclamations(){
+  const list=document.getElementById('reclamations-list');
+  list.innerHTML='';
+  reclamations.forEach((r,i)=>{
+    const d=document.createElement('div');d.className='rec-card';
+    const catDef=r.categorie?CATEGORIES[r.categorie]:null;
+
+    // Level 2 dropdown
+    let l2HTML='';
+    if(catDef&&catDef.level2){
+      const opts=catDef.level2.options.map(o=>`<option value="${o}"${r.level2===o?' selected':''}>${o}</option>`).join('');
+      l2HTML=`<div class="field">
+        <label>${catDef.level2.label}</label>
+        <select onchange="onL2Change('${r.id}',this.value)"><option value="">— Choisir —</option>${opts}</select>
+      </div>`;
+    }
+
+    // Level 3 dropdown
+    let l3HTML='';
+    if(catDef&&catDef.level3&&r.level2&&!r.level2.includes('préciser')){
+      const opts=catDef.level3.options.map(o=>`<option value="${o}"${r.level3===o?' selected':''}>${o}</option>`).join('');
+      l3HTML=`<div class="field">
+        <label>${catDef.level3.label}</label>
+        <select onchange="updateRec('${r.id}','level3',this.value);renderReclamations()"><option value="">— Choisir —</option>${opts}</select>
+      </div>`;
+      // Free text if Autre selected at level3
+      if(catDef.level3.hasOther && r.level3==='Autre'){
+        l3HTML+=`<div class="field">
+          <label>Préciser la nature du désordre</label>
+          <input type="text" placeholder="Décrire le désordre…" value="${r.freeTextL3||''}" oninput="updateRec('${r.id}','freeTextL3',this.value)">
+        </div>`;
+      }
+    }
+
+    // "Autre" free text for Meuble level2
+    let autreL2HTML='';
+    if(catDef&&catDef.level2&&catDef.level2.hasOther&&r.level2==='Autre'){
+      autreL2HTML=`<div class="field">
+        <label>Préciser le désordre</label>
+        <input type="text" placeholder="Décrire le désordre…" value="${r.freeText||''}" oninput="updateRec('${r.id}','freeText',this.value)">
+      </div>`;
+    }
+
+    // "Autre à préciser" for Électroménager appareil or Sanitaire
+    if(catDef&&catDef.level2&&catDef.level2.hasOther&&r.level2==='Autre à préciser'){
+      autreL2HTML=`<div class="field">
+        <label>Préciser</label>
+        <input type="text" placeholder="Préciser…" value="${r.freeText||''}" oninput="updateRec('${r.id}','freeText',this.value)">
+      </div>`;
+    }
+
+    // Free text for Livraison, Pose, Autre
+    let freeHTML='';
+    if(catDef&&catDef.freeText){
+      freeHTML=`<div class="field">
+        <label>Préciser</label>
+        <input type="text" placeholder="Décrire le problème…" value="${r.freeText||''}" oninput="updateRec('${r.id}','freeText',this.value)">
+      </div>`;
+    }
+
+    const catOpts=Object.keys(CATEGORIES).map(k=>`<option value="${k}"${r.categorie===k?' selected':''}>${k}</option>`).join('');
+
+    d.innerHTML=`
+      <div class="rec-card-head">
+        <span class="rec-card-title">Réclamation ${i+1}</span>
+        <button style="background:none;border:none;cursor:pointer;padding:4px" onclick="removeReclamation('${r.id}')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>
+      <div class="rec-card-body">
+        <div class="field">
+          <label>Catégorie</label>
+          <select onchange="onCatChange('${r.id}',this.value)">
+            <option value="">— Choisir —</option>${catOpts}
+          </select>
+        </div>
+        ${l2HTML}
+        ${autreL2HTML}
+        ${l3HTML}
+        ${freeHTML}
+        <div class="photo-zone">
+          <div class="pz-icon">📷</div>
+          <p>Appuyer pour photo / galerie</p>
+          <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotos('${r.id}',this)">
+        </div>
+        <div class="photo-grid" id="prev-${r.id}">
+          ${r.photos.map((p,pi)=>`<div class="photo-item"><img src="${p}" alt=""><button class="del-photo" onclick="removePhoto('${r.id}',${pi})">✕</button></div>`).join('')}
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label>Observation spécifique</label>
+          <textarea rows="3" placeholder="Détails supplémentaires…" onchange="updateRec('${r.id}','obs',this.value)">${r.obs}</textarea>
+        </div>
+      </div>`;
+    list.appendChild(d);
+  });
+}
+
+function handlePhotos(id,input){
+  const r=reclamations.find(x=>x.id===id);if(!r)return;
+  Array.from(input.files).forEach(f=>{
+    const rd=new FileReader();
+    rd.onload=e=>{r.photos.push(e.target.result);renderReclamations();};
+    rd.readAsDataURL(f);
+  });
+}
+function removePhoto(id,idx){const r=reclamations.find(x=>x.id===id);if(r){r.photos.splice(idx,1);renderReclamations();}}
+
+/* ══ LABEL RÉCLAMATION ══ */
+function recLabel(r){
+  const parts=[r.categorie];
+  if(r.level2&&r.level2!=='Autre'&&r.level2!=='Autre à préciser') parts.push(r.level2);
+  else if(r.level2&&r.freeText) parts.push(r.freeText);
+  if(r.level3&&r.level3!=='Autre') parts.push(r.level3);
+  else if(r.level3==='Autre'&&r.freeTextL3) parts.push(r.freeTextL3);
+  else if(r.level3==='Autre') parts.push('Autre');
+  return parts.filter(Boolean).join(' › ')||'Non renseigné';
+}
+
+/* ══ SIGNATURES ══ */
+function initSig(id){
+  const canvas=document.getElementById(id);if(!canvas||sigCtx[id])return;
+  const ctx=canvas.getContext('2d');ctx.strokeStyle='#0D47A1';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
+  sigCtx[id]=ctx;sigDrawing[id]=false;
+  function pos(e){const rect=canvas.getBoundingClientRect();const scX=canvas.width/rect.width,scY=canvas.height/rect.height;const src=e.touches?e.touches[0]:e;return{x:(src.clientX-rect.left)*scX,y:(src.clientY-rect.top)*scY};}
+  canvas.addEventListener('mousedown',e=>{sigDrawing[id]=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+  canvas.addEventListener('mousemove',e=>{if(!sigDrawing[id])return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+  canvas.addEventListener('mouseup',()=>sigDrawing[id]=false);
+  canvas.addEventListener('mouseleave',()=>sigDrawing[id]=false);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();sigDrawing[id]=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!sigDrawing[id])return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();},{passive:false});
+  canvas.addEventListener('touchend',()=>sigDrawing[id]=false);
+}
+function initAllSigs(){initSig('sigVendeur');initSig('sigClient');}
+function clearSig(id){const c=document.getElementById(id);if(c&&sigCtx[id])sigCtx[id].clearRect(0,0,c.width,c.height);}
+
+function buildResume(){
+  const d=document.getElementById('dateVisite').value;
+  const fmt=d?new Date(d+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+  document.getElementById('resume-rapide').innerHTML=`
+    <div class="sum-row"><span class="sum-key">Date</span><span class="sum-val">${fmt}</span></div>
+    <div class="sum-row"><span class="sum-key">Vendeur</span><span class="sum-val">${document.getElementById('vendeurNom').value||'—'}</span></div>
+    <div class="sum-row"><span class="sum-key">Client</span><span class="sum-val">${(document.getElementById('clientPrenom').value+' '+document.getElementById('clientNom').value).trim()||'—'}</span></div>
+    <div class="sum-row"><span class="sum-key">Réclamations</span><span class="sum-val">${reclamations.length} désordre${reclamations.length>1?'s':''}</span></div>`;
+}
+
+/* ══ HISTORIQUE ══ */
+function getHistory(){try{return JSON.parse(localStorage.getItem('rapports_history')||'[]');}catch(e){return[];}}
+function saveToHistory(r){let h=getHistory();h.unshift(r);if(h.length>MAX)h=h.slice(0,MAX);localStorage.setItem('rapports_history',JSON.stringify(h));}
+function deleteFromHistory(id){localStorage.setItem('rapports_history',JSON.stringify(getHistory().filter(r=>r.id!==id)));renderHistory();showToast('🗑️ Rapport supprimé');}
+
+function updateHistoryBadge(){
+  const n=getHistory().length;
+  document.getElementById('tab-hist').textContent=n>0?`Historique (${n})`:'Historique';
+}
+
+function renderHistory(){
+  const history=getHistory();
+  const container=document.getElementById('history-content');
+  if(!history.length){
+    container.innerHTML=`
+      <div class="hist-header"><h2>Mes rapports</h2></div>
+      <div class="hist-empty"><div class="hist-empty-icon">📂</div>
+      <p style="font-weight:700;font-size:17px;margin-bottom:6px;color:#1C1C1E">Aucun rapport</p>
+      <p style="font-size:14px">Vos rapports générés apparaîtront ici</p></div>`;
+    return;
+  }
+  const now=new Date();
+  const thisMonth=history.filter(r=>{
+    if(!r.dateVisite)return false;
+    const d=new Date(r.dateVisite+'T00:00:00');
+    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  }).length;
+  let html=`<div class="hist-header"><h2>Mes rapports</h2></div>
+    <div class="hist-stats">
+      <div class="stat-card"><div class="stat-label">Ce mois</div><div class="stat-value">${thisMonth}</div></div>
+      <div class="stat-card"><div class="stat-label">Total (${MAX} derniers)</div><div class="stat-value">${history.length}</div></div>
+    </div><div class="hist-list">`;
+  history.forEach(r=>{
+    const date=r.dateVisite?new Date(r.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+    const client=(r.clientPrenom+' '+r.clientNom).trim()||'Client inconnu';
+    const nb=r.reclamations?r.reclamations.length:0;
+    html+=`<div class="hist-item" onclick="openSheet('${r.id}')">
+      <div class="hist-icon">📋</div>
+      <div class="hist-info">
+        <div class="hist-client">${client}</div>
+        <div class="hist-meta">${r.vendeurNom||'—'}</div>
+      </div>
+      <div class="hist-right">
+        <div class="hist-nb">${nb} désordre${nb>1?'s':''}</div>
+        <div class="hist-date">${date}</div>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  container.innerHTML=html;
+  updateHistoryBadge();
+}
+
+/* ══ BOTTOM SHEET ══ */
+let currentSheetId=null;
+function openSheet(id){
+  const data=getHistory().find(r=>r.id===id);if(!data)return;
+  currentSheetId=id;
+  const date=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+  const client=(data.clientPrenom+' '+data.clientNom).trim()||'—';
+  const nb=data.reclamations?data.reclamations.length:0;
+  document.getElementById('sheetTitle').textContent=client;
+  let allPhotos=[];
+  if(data.reclamations)data.reclamations.forEach(r=>{if(r.photos)allPhotos=allPhotos.concat(r.photos);});
+  let html=`
+    <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">📅</span> Date</span><span class="detail-val">${date}</span></div>
+    <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">👤</span> Vendeur</span><span class="detail-val">${data.vendeurNom||'—'}</span></div>
+    <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">📋</span> Désordres</span><span class="detail-val">${nb} réclamation${nb>1?'s':''}</span></div>
+    <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">📍</span> Adresse</span><span class="detail-val" style="max-width:52%;text-align:right;font-size:13px">${data.adresse||'—'}</span></div>`;
+  if(allPhotos.length){
+    html+=`<div class="sheet-photos">${allPhotos.map(p=>`<img src="${p}" alt="">`).join('')}</div>`;
+  }
+  document.getElementById('sheetContent').innerHTML=html;
+  document.getElementById('sheetActions').innerHTML=`
+    <button class="sheet-action" onclick="openPdfView('${id}')">
+      <div class="sa-icon icon-black"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <span class="sa-label">Voir PDF</span>
+    </button>
+    <button class="sheet-action" onclick="editRapport('${id}')">
+      <div class="sa-icon icon-light"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1C1E" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+      <span class="sa-label">Modifier</span>
+    </button>
+    <button class="sheet-action" onclick="confirmDelete('${id}')">
+      <div class="sa-icon icon-red"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+      <span class="sa-label" style="color:#FF3B30">Supprimer</span>
+    </button>`;
+  document.getElementById('sheetOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSheet(e){if(e.target===document.getElementById('sheetOverlay'))closeSheetDirect();}
+function closeSheetDirect(){document.getElementById('sheetOverlay').classList.remove('open');document.body.style.overflow='';}
+function confirmDelete(id){if(confirm('Supprimer ce rapport ?')){closeSheetDirect();setTimeout(()=>deleteFromHistory(id),200);}}
+function editRapport(id){
+  const data=getHistory().find(r=>r.id===id);if(!data)return;
+  closeSheetDirect();
+  document.getElementById('dateVisite').value=data.dateVisite||'';
+  document.getElementById('vendeurNom').value=data.vendeurNom||'';
+  document.getElementById('clientPrenom').value=data.clientPrenom||'';
+  document.getElementById('clientNom').value=data.clientNom||'';
+  document.getElementById('adresse').value=data.adresse||'';
+  reclamations=JSON.parse(JSON.stringify(data.reclamations||[]));
+  // Restore observations
+  if(data.observations){
+    document.getElementById('obsVendeur').value=data.observations.vendeurText||'';
+    document.getElementById('obsClient').value=data.observations.clientText||'';
+    document.getElementById('obsVendeurNone').checked=!!data.observations.vendeurNone;
+    document.getElementById('obsClientNone').checked=!!data.observations.clientNone;
+    if(data.observations.vendeurNone){document.getElementById('obsVendeur').disabled=true;document.getElementById('obsVendeur').style.opacity='.4';}
+    if(data.observations.clientNone){document.getElementById('obsClient').disabled=true;document.getElementById('obsClient').style.opacity='.4';}
+  }
+  renderReclamations();
+  deleteFromHistory(id);
+  switchTab('nouveau');goPage(0);
+  showToast('✏️ Rapport chargé pour modification');
+}
+
+/* ══ VUE PDF PREVIEW ══ */
+function openPdfView(id){
+  const data=getHistory().find(r=>r.id===id);if(!data)return;
+  currentPdfId=id;closeSheetDirect();
+  const date=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+  const client=(data.clientPrenom+' '+data.clientNom).trim()||'—';
+  const refId='RPT-'+String(data.id).slice(-6).toUpperCase();
+  document.getElementById('pdfNavTitle').textContent=client;
+  const obs=data.observations||{};
+
+  let body=`<div class="pdf-doc">
+    <div class="pdf-doc-header">
+      <div class="pdf-doc-title">RAPPORT DE VISITE</div>
+      <div class="pdf-doc-sub">Constat des désordres &amp; réclamations</div>
+      <div class="pdf-doc-ref">Réf. ${refId} · ${date}</div>
+    </div>
+    <div class="pdf-section">
+      <div class="pdf-section-label">Informations générales</div>
+      <div class="pdf-info-grid">
+        <div class="pdf-info-cell"><div class="pk">Date</div><div class="pv">${date}</div></div>
+        <div class="pdf-info-cell"><div class="pk">Vendeur</div><div class="pv">${data.vendeurNom||'—'}</div></div>
+        <div class="pdf-info-cell"><div class="pk">Client</div><div class="pv">${client}</div></div>
+        <div class="pdf-info-cell"><div class="pk">Adresse</div><div class="pv" style="font-size:12px">${data.adresse||'—'}</div></div>
+      </div>
+    </div>`;
+
+  if(data.reclamations&&data.reclamations.length){
+    body+=`<div class="pdf-section"><div class="pdf-section-label">Désordres constatés (${data.reclamations.length})</div>`;
+    data.reclamations.forEach((r,i)=>{
+      body+=`<div class="pdf-rec">
+        <div class="pdf-rec-head">Réclamation ${i+1} — ${recLabelFromData(r)}</div>
+        <div class="pdf-rec-body">
+          ${r.obs?`<div class="pdf-rec-obs">${r.obs}</div>`:'<div class="pdf-rec-obs" style="color:#8E8E93;font-style:italic">Aucune observation spécifique</div>'}
+          ${r.photos&&r.photos.length?`<div class="pdf-rec-photos">${r.photos.map(p=>`<img src="${p}" alt="">`).join('')}</div>`:''}
+        </div>
+      </div>`;
+    });
+    body+='</div>';
+  }
+
+  // Observations
+  body+=`<div class="pdf-section"><div class="pdf-section-label">Observations générales</div>
+    <div class="pdf-obs-box"><div class="pok">Vendeur</div>
+      <div class="pov ${obs.vendeurNone||(!obs.vendeurText)?'none':''}">${obs.vendeurNone?'Aucune observation':(obs.vendeurText||'Non renseigné')}</div>
+    </div>
+    <div class="pdf-obs-box"><div class="pok">Client</div>
+      <div class="pov ${obs.clientNone||(!obs.clientText)?'none':''}">${obs.clientNone?'Aucune observation':(obs.clientText||'Non renseigné')}</div>
+    </div>
+  </div>`;
+
+  if(data.signatures){
+    const vNote=obs.vendeurNone?'Aucune observation vendeur':(obs.vendeurText?'Observation vendeur renseignée':'');
+    const cNote=obs.clientNone?'Aucune observation client':(obs.clientText?'Observation client renseignée':'');
+    body+=`<div class="pdf-section">
+      <div class="pdf-section-label">Signatures</div>
+      <div class="pdf-sig-row">
+        <div class="pdf-sig-box"><img src="${data.signatures.sigVendeur}" alt="vendeur"><div class="pdf-sig-lbl">Vendeur</div></div>
+        <div class="pdf-sig-box"><img src="${data.signatures.sigClient}" alt="client"><div class="pdf-sig-lbl">Client</div></div>
+      </div>
+      ${(vNote||cNote)?`<div class="pdf-sig-note">${[vNote,cNote].filter(Boolean).join(' · ')}</div>`:''}
+    </div>`;
+  }
+  body+=`<div class="pdf-footer-bar">Rapport de visite — usage professionnel &nbsp;·&nbsp; ${refId}</div></div>`;
+  document.getElementById('pdfBody').innerHTML=body;
+  document.getElementById('pdfOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closePdfView(){document.getElementById('pdfOverlay').classList.remove('open');document.body.style.overflow='';currentPdfId=null;}
+
+function recLabelFromData(r){
+  const parts=[r.categorie];
+  if(r.level2&&r.level2!=='Autre'&&r.level2!=='Autre à préciser') parts.push(r.level2);
+  else if(r.level2&&r.freeText) parts.push(r.freeText);
+  if(r.level3&&r.level3!=='Autre') parts.push(r.level3);
+  else if(r.level3==='Autre'&&r.freeTextL3) parts.push(r.freeTextL3);
+  else if(r.level3==='Autre') parts.push('Autre');
+  return parts.filter(Boolean).join(' › ')||'Non renseigné';
+}
+
+/* ══ DOWNLOAD / SHARE ══ */
+function doDownload(){if(!currentPdfId)return;redownloadPDF(currentPdfId);}
+async function doShare(){
+  if(!currentPdfId)return;
+  const data=getHistory().find(r=>r.id===currentPdfId);if(!data)return;
+  if(typeof window.jspdf!=='undefined'&&navigator.share&&navigator.canShare){
+    try{
+      const doc=buildPDFDoc(data);const blob=doc.output('blob');
+      const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR').replace(/\//g,'-'):'date';
+      const file=new File([blob],`rapport_${data.clientNom||'client'}_${ds}.pdf`,{type:'application/pdf'});
+      if(navigator.canShare({files:[file]})){await navigator.share({title:'Rapport de visite',files:[file]});return;}
+    }catch(e){if(e.name!=='AbortError')console.warn(e);}
+  }
+  const date=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+  const client=(data.clientPrenom+' '+data.clientNom).trim()||'Client';
+  let body=`Bonjour,\n\nRAPPORT DE VISITE\n${'─'.repeat(28)}\nDate : ${date}\nVendeur : ${data.vendeurNom||'—'}\nClient : ${client}\nAdresse : ${data.adresse||'—'}\n\n`;
+  const obs=data.observations||{};
+  body+=`OBSERVATIONS\n${'─'.repeat(28)}\nVendeur : ${obs.vendeurNone?'Aucune observation':(obs.vendeurText||'Non renseigné')}\nClient : ${obs.clientNone?'Aucune observation':(obs.clientText||'Non renseigné')}\n\n`;
+  body+=`DÉSORDRES (${data.reclamations?data.reclamations.length:0})\n${'─'.repeat(28)}\n`;
+  if(data.reclamations)data.reclamations.forEach((r,i)=>{body+=`${i+1}. ${recLabelFromData(r)}\n`;if(r.obs)body+=`   › ${r.obs}\n`;});
+  body+=`\nGénéré le ${new Date().toLocaleDateString('fr-FR')}`;
+  window.location.href=`mailto:?subject=${encodeURIComponent('Rapport de visite — '+client+' — '+date)}&body=${encodeURIComponent(body)}`;
+  showToast('📧 Ouverture messagerie…');
+  setTimeout(()=>{if(confirm('Télécharger aussi le PDF ?'))doDownload();},900);
+}
+
+/* ══ PDF BUILD ══ */
+function buildPDFDoc(data){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const PW=210,M=14,CW=PW-2*M;let y=M;
+  const blue=[21,101,192],dkB=[13,71,161],gray=[96,125,139],ltB=[227,242,253],white=[255,255,255];
+  doc.setFillColor(...blue);doc.rect(0,0,PW,38,'F');
+  doc.setTextColor(...white);doc.setFontSize(22);doc.setFont('helvetica','bold');doc.text('RAPPORT DE VISITE',PW/2,15,{align:'center'});
+  doc.setFontSize(11);doc.setFont('helvetica','normal');doc.text('Constat des désordres & réclamations',PW/2,23,{align:'center'});
+  const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+  doc.setFontSize(9);doc.text('Date : '+ds,PW/2,31,{align:'center'});y=46;
+
+  doc.setFillColor(...ltB);doc.roundedRect(M,y,CW,40,3,3,'F');doc.setDrawColor(...blue);doc.setLineWidth(0.4);doc.roundedRect(M,y,CW,40,3,3,'S');
+  doc.setTextColor(...dkB);doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text('Informations de la visite',M+4,y+8);
+  [['Vendeur',data.vendeurNom||'—'],['Client',(data.clientPrenom+' '+data.clientNom).trim()||'—'],['Adresse',data.adresse||'—']].forEach((row,i)=>{
+    const ry=y+15+i*8;doc.setFont('helvetica','bold');doc.setTextColor(...gray);doc.text(row[0]+' :',M+4,ry);
+    doc.setFont('helvetica','normal');doc.setTextColor(26,26,46);doc.text(doc.splitTextToSize(row[1],CW-32),M+28,ry);
+  });
+  y+=48;
+
+  // Réclamations
+  doc.setTextColor(...blue);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text(`Désordres constatés (${data.reclamations.length})`,M,y+6);y+=12;
+  for(let i=0;i<data.reclamations.length;i++){
+    const r=data.reclamations[i];if(y>260){doc.addPage();y=M;}
+    doc.setFillColor(...blue);doc.roundedRect(M,y,CW,9,2,2,'F');doc.setTextColor(...white);doc.setFontSize(10);doc.setFont('helvetica','bold');
+    doc.text(`Réclamation ${i+1} — ${recLabelFromData(r)}`,M+3,y+6.2,{maxWidth:CW-6});y+=11;
+    if(r.obs){const lines=doc.splitTextToSize(r.obs,CW-8);const h=lines.length*5+8;doc.setFillColor(250,250,250);doc.setDrawColor(...gray);doc.setLineWidth(0.2);doc.roundedRect(M,y,CW,h,2,2,'FD');doc.setTextColor(26,26,46);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(lines,M+4,y+6);y+=h+3;}
+    if(r.photos&&r.photos.length){const phW=(CW-4)/2,phH=55;let px=M,col=0;for(const ph of r.photos){if(y+phH>278){doc.addPage();y=M;px=M;col=0;}try{doc.addImage(ph,'JPEG',px,y,phW,phH,'','FAST');doc.setDrawColor(...gray);doc.setLineWidth(0.15);doc.rect(px,y,phW,phH);}catch(e){}col++;if(col%2===0){px=M;y+=phH+4;}else px=M+phW+4;}if(col%2!==0)y+=phH+4;}
+    y+=4;if(y<263){doc.setDrawColor(...ltB);doc.setLineWidth(0.4);doc.line(M,y-2,M+CW,y-2);}
+  }
+
+  // Observations générales
+  if(y>240){doc.addPage();y=M;}y+=4;
+  const obs=data.observations||{};
+  doc.setTextColor(...blue);doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('Observations générales',M,y+6);y+=12;
+  [['Vendeur',obs.vendeurNone?'Aucune observation':(obs.vendeurText||'Non renseigné')],['Client',obs.clientNone?'Aucune observation':(obs.clientText||'Non renseigné')]].forEach(([lbl,txt])=>{
+    const lines=doc.splitTextToSize(txt,CW-32);const h=Math.max(lines.length*5+10,14);
+    if(y+h>275){doc.addPage();y=M;}
+    doc.setFillColor(250,250,250);doc.setDrawColor(...gray);doc.setLineWidth(0.2);doc.roundedRect(M,y,CW,h,2,2,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...gray);doc.text(lbl.toUpperCase(),M+4,y+5);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,26,46);doc.text(lines,M+4,y+11);
+    y+=h+4;
+  });
+
+  // Signatures
+  if(y>225){doc.addPage();y=M;}y+=4;
+  doc.setTextColor(...blue);doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('Signatures',M,y+6);y+=12;
+  const sigW=(CW-8)/2,sigH=38;
+  [['sigVendeur','Vendeur'],['sigClient','Client']].forEach(([key,lbl],idx)=>{
+    const sx=M+idx*(sigW+8);doc.setFillColor(250,250,250);doc.setDrawColor(...gray);doc.setLineWidth(0.3);doc.roundedRect(sx,y,sigW,sigH+10,2,2,'FD');
+    doc.setTextColor(...gray);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(lbl.toUpperCase(),sx+sigW/2,y+5.5,{align:'center'});
+    if(data.signatures&&data.signatures[key]){try{doc.addImage(data.signatures[key],'PNG',sx+2,y+8,sigW-4,sigH,'','FAST');}catch(e){}}
+  });
+  y+=sigH+14;
+  // Note observations sous signatures
+  const vNote=obs.vendeurNone?'Vendeur : aucune observation':(obs.vendeurText?'Vendeur : observation renseignée':'');
+  const cNote=obs.clientNone?'Client : aucune observation':(obs.clientText?'Client : observation renseignée':'');
+  if(vNote||cNote){
+    const noteStr=[vNote,cNote].filter(Boolean).join('  ·  ');
+    doc.setFillColor(255,248,225);doc.setDrawColor(255,224,130);doc.setLineWidth(0.3);
+    const noteLines=doc.splitTextToSize(noteStr,CW-8);const noteH=noteLines.length*5+8;
+    doc.roundedRect(M,y,CW,noteH,2,2,'FD');
+    doc.setTextColor(121,85,72);doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text(noteLines,M+4,y+6);
+    y+=noteH+4;
+  }
+
+  const pages=doc.internal.getNumberOfPages();
+  for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFillColor(...blue);doc.rect(0,285,PW,12,'F');doc.setTextColor(...white);doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text(`Document généré le ${new Date().toLocaleDateString('fr-FR')} — Page ${p}/${pages}`,PW/2,291,{align:'center'});}
+  return doc;
+}
+
+async function generateAndSave(){
+  if(typeof window.jspdf==='undefined'){showToast('⏳ Chargement, réessayez…');return;}
+  const data={
+    id:'rapport_'+Date.now(),savedAt:new Date().toISOString(),
+    dateVisite:document.getElementById('dateVisite').value,
+    vendeurNom:document.getElementById('vendeurNom').value,
+    clientPrenom:document.getElementById('clientPrenom').value,
+    clientNom:document.getElementById('clientNom').value,
+    adresse:document.getElementById('adresse').value,
+    reclamations:JSON.parse(JSON.stringify(reclamations)),
+    observations:{
+      vendeurText:document.getElementById('obsVendeur').value,
+      vendeurNone:document.getElementById('obsVendeurNone').checked,
+      clientText:document.getElementById('obsClient').value,
+      clientNone:document.getElementById('obsClientNone').checked
+    },
+    signatures:{
+      sigVendeur:document.getElementById('sigVendeur').toDataURL('image/png'),
+      sigClient:document.getElementById('sigClient').toDataURL('image/png')
+    }
+  };
+  try{
+    saveToHistory(data);
+    const doc=buildPDFDoc(data);
+    const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR').replace(/\//g,'-'):'date';
+    doc.save(`rapport_${data.clientNom||'client'}_${ds}.pdf`);
+    updateHistoryBadge();
+    showToast('✅ PDF généré et sauvegardé !');
+  }catch(e){showToast('❌ Erreur : '+e.message);}
+}
+
+function redownloadPDF(id){
+  if(typeof window.jspdf==='undefined'){showToast('⏳ Chargement, réessayez…');return;}
+  const data=getHistory().find(r=>r.id===id);if(!data){showToast('Introuvable');return;}
+  try{
+    const doc=buildPDFDoc(data);
+    const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR').replace(/\//g,'-'):'date';
+    doc.save(`rapport_${data.clientNom||'client'}_${ds}.pdf`);
+    showToast('✅ PDF téléchargé !');
+  }catch(e){showToast('❌ Erreur PDF');}
+}
+
+function resetAll(){
+  if(!confirm('Réinitialiser le formulaire ?'))return;
+  ['dateVisite','vendeurNom','clientPrenom','clientNom','adresse'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('dateVisite').valueAsDate=new Date();
+  document.getElementById('obsVendeur').value='';document.getElementById('obsVendeur').disabled=false;document.getElementById('obsVendeur').style.opacity='1';
+  document.getElementById('obsClient').value='';document.getElementById('obsClient').disabled=false;document.getElementById('obsClient').style.opacity='1';
+  document.getElementById('obsVendeurNone').checked=false;document.getElementById('obsClientNone').checked=false;
+  document.getElementById('obsAnnotation').style.display='none';
+  reclamations=[];renderReclamations();
+  ['sigVendeur','sigClient'].forEach(id=>{clearSig(id);delete sigCtx[id];});
+  goPage(0);showToast('Formulaire réinitialisé');
+}
+
+/* INIT */
+document.getElementById('dateVisite').valueAsDate=new Date();
+renderReclamations();
+updateHistoryBadge();
+</script>
+</body>
+</html>
