@@ -626,9 +626,25 @@ function buildResume(){
 }
 
 /* ══ HISTORIQUE ══ */
-function getHistory(){try{return JSON.parse(localStorage.getItem('rapports_history')||'[]');}catch(e){return[];}}
-function saveToHistory(r){let h=getHistory();h.unshift(r);if(h.length>MAX)h=h.slice(0,MAX);localStorage.setItem('rapports_history',JSON.stringify(h));}
-function deleteFromHistory(id){localStorage.setItem('rapports_history',JSON.stringify(getHistory().filter(r=>r.id!==id)));renderHistory();showToast('🗑️ Rapport supprimé');}
+/* Storage avec fallback mémoire (compatibilité Safari iOS) */
+let _memHistory=[];
+function _storageAvailable(){try{const k='__test__';localStorage.setItem(k,k);localStorage.removeItem(k);return true;}catch(e){return false;}}
+const _useLS=_storageAvailable();
+function getHistory(){
+  if(_useLS){try{return JSON.parse(localStorage.getItem('rapports_history')||'[]');}catch(e){}}
+  return _memHistory;
+}
+function saveToHistory(r){
+  let h=getHistory();h.unshift(r);if(h.length>MAX)h=h.slice(0,MAX);
+  if(_useLS){try{localStorage.setItem('rapports_history',JSON.stringify(h));}catch(e){_memHistory=h;}}
+  else{_memHistory=h;}
+}
+function deleteFromHistory(id){
+  const h=getHistory().filter(r=>r.id!==id);
+  if(_useLS){try{localStorage.setItem('rapports_history',JSON.stringify(h));}catch(e){_memHistory=h;}}
+  else{_memHistory=h;}
+  renderHistory();showToast('🗑️ Rapport supprimé');
+}
 
 function updateHistoryBadge(){
   const n=getHistory().length;
