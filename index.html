@@ -8,30 +8,53 @@
 <meta name="apple-mobile-web-app-title" content="Réclamations">
 <title>Rapport Réclamations</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;background:#F2F2F7;color:#1C1C1E;min-height:100vh;-webkit-font-smoothing:antialiased}
 :root{--blue:#1565C0;--blue-dark:#0D47A1;--blue-light:#E3F2FD;--red:#FF3B30;--green:#34C759;--gray:#8E8E93;--border:#E5E5EA;--card:#FFFFFF;--shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.06)}
 .app{max-width:430px;margin:0 auto;padding:0 0 100px;min-height:100vh}
+
+/* ── LOGIN ── */
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;background:linear-gradient(160deg,#1565C0,#0D47A1)}
+.login-logo{font-size:52px;margin-bottom:16px}
+.login-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;text-align:center}
+.login-sub{font-size:14px;color:rgba(255,255,255,.7);margin-bottom:32px;text-align:center}
+.login-card{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+.login-card label{font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.login-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:#1C1C1E;background:#FAFAFA;font-family:inherit;margin-bottom:14px;-webkit-appearance:none}
+.login-card input:focus{outline:none;border-color:var(--blue);background:#fff}
+.login-btn{width:100%;padding:14px;background:#1C1C1E;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px}
+.login-btn:active{opacity:.85}
+.login-err{background:#FFE5E3;color:#C62828;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:12px;display:none}
+.login-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--gray)}
+.login-switch a{color:var(--blue);font-weight:600;cursor:pointer;text-decoration:none}
+
+/* ── HEADER ── */
 .header{background:linear-gradient(160deg,#1565C0 0%,#0D47A1 100%);color:#fff;padding:20px 16px 0;text-align:center;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(13,71,161,.35)}
-.header h1{font-size:17px;font-weight:700;letter-spacing:.3px}
-.header p{font-size:12px;opacity:.75;margin-top:2px}
-.tab-bar{display:flex;margin-top:14px}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.header h1{font-size:17px;font-weight:700;letter-spacing:.3px;flex:1;text-align:center}
+.logout-btn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.user-chip{background:rgba(255,255,255,.15);border-radius:20px;padding:3px 10px;font-size:11px;color:rgba(255,255,255,.85);margin-bottom:4px;display:inline-block}
+.tab-bar{display:flex;margin-top:10px}
 .tab{flex:1;padding:10px 0;font-size:13px;font-weight:600;color:rgba(255,255,255,.55);border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;transition:.2s}
 .tab.active{color:#fff;border-bottom-color:#fff}
 .steps{display:flex;justify-content:center;gap:5px;padding:12px 0 4px}
 .step-dot{width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,.28);transition:.3s}
 .step-dot.active{background:#fff}
 .step-dot.done{background:rgba(255,255,255,.65)}
+
+/* ── FORM ── */
 .section{background:var(--card);border-radius:14px;margin:12px;padding:16px;box-shadow:var(--shadow)}
 .section-title{font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
 label{display:block;font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
-input[type=text],input[type=date],select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:#1C1C1E;background:#FAFAFA;font-family:inherit;-webkit-appearance:none;transition:.15s}
+input[type=text],input[type=date],input[type=email],input[type=password],select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:#1C1C1E;background:#FAFAFA;font-family:inherit;-webkit-appearance:none;transition:.15s}
 input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
 .field{margin-bottom:13px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238E8E93'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:32px}
-select:disabled{opacity:.45;background-color:#F2F2F7}
+
+/* ── BUTTONS ── */
 .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.12s;font-family:inherit}
 .btn:active{transform:scale(.96)}
 .btn-black{background:#1C1C1E;color:#fff}
@@ -41,6 +64,8 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
 .btn-sm{padding:9px 16px;font-size:13px;width:auto;border-radius:10px}
 .nav-row{margin:0 12px;display:flex;gap:8px}
 .back-btn{flex:0 0 auto;width:50px;padding:14px 0}
+
+/* ── RECLAMATIONS ── */
 .rec-card{border:1.5px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
 .rec-card-head{background:#F8F9FA;padding:11px 14px;display:flex;align-items:center;justify-content:space-between}
 .rec-card-title{font-size:13px;font-weight:700;color:var(--blue)}
@@ -54,15 +79,23 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
 .photo-item img{width:100%;height:88px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border);display:block}
 .del-photo{position:absolute;top:4px;right:4px;background:rgba(255,59,48,.88);border:none;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;padding:0}
 .add-rec-btn{border:2px dashed #C7C7CC;background:transparent;color:var(--gray);padding:13px;border-radius:12px;width:100%;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;font-family:inherit}
+
+/* ── SIGNATURES ── */
 .sig-wrap{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
 .sig-wrap canvas{display:block;width:100%;height:140px;touch-action:none}
 .sig-lbl{font-size:11px;color:var(--gray);text-align:center;padding:7px;background:#F8F9FA;border-top:1px solid var(--border)}
 .sig-actions{display:flex;gap:8px;margin:8px 0 16px}
 .sig-sep{text-align:center;font-size:11px;color:var(--gray);margin:14px 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── PAGES ── */
 .main-page{display:none}.main-page.active{display:block}
 .sub-page{display:none}.sub-page.active{display:block}
+
+/* ── TOAST ── */
 .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#fff;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:600;opacity:0;transition:.3s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.28)}
 .toast.show{opacity:1}
+
+/* ── SUMMARY ── */
 .sum-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:13px;gap:8px}
 .sum-row:last-child{border-bottom:none}
 .sum-key{color:var(--gray);flex-shrink:0}
@@ -70,8 +103,7 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
 
 /* ── OBSERVATIONS ── */
 .obs-block{margin-bottom:14px}
-.obs-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.obs-label{font-size:13px;font-weight:700;color:#1C1C1E}
+.obs-label{font-size:13px;font-weight:700;color:#1C1C1E;margin-bottom:8px;display:block}
 .obs-check-row{display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer}
 .obs-check-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
 .obs-check-row span{font-size:13px;color:var(--gray)}
@@ -96,6 +128,7 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
 .hist-date{font-size:12px;color:var(--gray);margin-top:1px}
 .hist-empty{text-align:center;padding:60px 24px;color:var(--gray)}
 .hist-empty-icon{font-size:52px;margin-bottom:14px}
+.hist-loading{text-align:center;padding:40px;color:var(--gray);font-size:14px}
 
 /* ── BOTTOM SHEET ── */
 .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none;align-items:flex-end;justify-content:center}
@@ -129,7 +162,7 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
 .pdf-body{flex:1;overflow-y:auto;padding:16px}
 .pdf-doc{background:#fff;border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
 .pdf-doc-header{background:#1565C0;padding:24px 20px 20px;color:#fff}
-.pdf-doc-title{font-size:20px;font-weight:800;letter-spacing:.3px;margin-bottom:2px}
+.pdf-doc-title{font-size:20px;font-weight:800;margin-bottom:2px}
 .pdf-doc-sub{font-size:12px;opacity:.8}
 .pdf-doc-ref{font-size:11px;opacity:.65;margin-top:8px}
 .pdf-section{padding:16px 20px;border-bottom:1px solid var(--border)}
@@ -159,11 +192,40 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- ══ ÉCRAN LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-logo">📋</div>
+  <div class="login-title">Rapport Réclamations</div>
+  <div class="login-sub">Connectez-vous pour accéder à vos rapports</div>
+  <div class="login-card">
+    <div id="loginForm">
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="vendeur@exemple.fr" autocomplete="email"></div>
+      <div class="field"><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="login-btn" onclick="doLogin()">Se connecter</button>
+      <div class="login-err" id="loginErr"></div>
+      <div class="login-switch">Pas encore de compte ? <a onclick="showRegister()">Créer un compte</a></div>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="vendeur@exemple.fr" autocomplete="email"></div>
+      <div class="field"><label>Mot de passe</label><input type="password" id="regPassword" placeholder="Minimum 6 caractères" autocomplete="new-password"></div>
+      <button class="login-btn" onclick="doRegister()">Créer mon compte</button>
+      <div class="login-err" id="regErr"></div>
+      <div class="login-switch">Déjà un compte ? <a onclick="showLogin()">Se connecter</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP PRINCIPALE ══ -->
+<div class="app" id="mainApp" style="display:none">
 
 <div class="header">
-  <h1>📋 Rapport Réclamations</h1>
-  <p>Gestion des désordres &amp; visites client</p>
+  <div class="header-top">
+    <div style="width:80px"></div>
+    <h1>📋 Rapports</h1>
+    <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+  </div>
+  <div id="userChip" class="user-chip"></div>
   <div class="tab-bar">
     <button class="tab active" onclick="switchTab('nouveau')">Nouveau</button>
     <button class="tab" id="tab-hist" onclick="switchTab('historique')">Historique</button>
@@ -174,7 +236,7 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
 
 <!-- BOTTOM SHEET -->
 <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
-  <div class="sheet" id="sheet">
+  <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
       <span class="sheet-title" id="sheetTitle">Rapport</span>
@@ -262,38 +324,29 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
     </div>
   </div>
 
-  <!-- Page 2 : Observations générales -->
+  <!-- Page 2 : Observations -->
   <div class="sub-page" id="page2">
     <div class="section">
       <div class="section-title">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         Observations générales
       </div>
-
-      <!-- Vendeur -->
       <div class="obs-block">
-        <div class="obs-header">
-          <span class="obs-label">👤 Observation du vendeur</span>
-        </div>
-        <textarea id="obsVendeur" rows="4" placeholder="Observations du vendeur…" oninput="syncObsVendeur()"></textarea>
+        <span class="obs-label">👤 Observation du vendeur</span>
+        <textarea id="obsVendeur" rows="4" placeholder="Observations du vendeur…" oninput="updateObsAnnotation()"></textarea>
         <label class="obs-check-row" for="obsVendeurNone">
           <input type="checkbox" id="obsVendeurNone" onchange="toggleObs('vendeur')">
           <span>Le vendeur n'a pas d'observation</span>
         </label>
       </div>
-
-      <!-- Client -->
       <div class="obs-block">
-        <div class="obs-header">
-          <span class="obs-label">🏠 Observation du client</span>
-        </div>
-        <textarea id="obsClient" rows="4" placeholder="Observations du client…" oninput="syncObsClient()"></textarea>
+        <span class="obs-label">🏠 Observation du client</span>
+        <textarea id="obsClient" rows="4" placeholder="Observations du client…" oninput="updateObsAnnotation()"></textarea>
         <label class="obs-check-row" for="obsClientNone">
           <input type="checkbox" id="obsClientNone" onchange="toggleObs('client')">
           <span>Le client n'a pas d'observation</span>
         </label>
       </div>
-
       <div class="obs-annotation" id="obsAnnotation" style="display:none"></div>
     </div>
     <div class="nav-row">
@@ -314,10 +367,7 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         Signatures
       </div>
-
-      <!-- Annotation observations dans l'écran signature -->
       <div id="sigObsNote" style="margin-bottom:14px"></div>
-
       <label>Signature du vendeur</label>
       <div class="sig-wrap"><canvas id="sigVendeur" width="800" height="280"></canvas><div class="sig-lbl">Signez ici — vendeur</div></div>
       <div class="sig-actions"><button class="btn btn-ghost btn-sm" onclick="clearSig('sigVendeur')">✕ Effacer</button></div>
@@ -332,7 +382,7 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
         <button class="btn btn-ghost back-btn" onclick="goPage(2)">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <button class="btn btn-success" onclick="generateAndSave()" style="flex:1">
+        <button class="btn btn-success" onclick="generateAndSave()" style="flex:1" id="saveBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
           Générer &amp; sauvegarder
         </button>
@@ -350,50 +400,92 @@ select:disabled{opacity:.45;background-color:#F2F2F7}
   <div id="history-content"></div>
 </div>
 
-</div><!-- .app -->
+</div><!-- mainApp -->
 
 <script>
-/* ══ DONNÉES TYPES DÉSORDRES ══ */
+/* ══ SUPABASE ══ */
+const SUPA_URL = 'https://lmkpdnxuoinlfjsivics.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxta3Bkbnh1b2lubGZqc2l2aWNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzOTU1ODYsImV4cCI6MjA5Nzk3MTU4Nn0.VLOFeSqRMUayukm1LQ3Avl24lxLeA1uekytldzNc3wk';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+/* ══ TYPES DÉSORDRES ══ */
 const CATEGORIES = {
-  'Meuble': {
-    label: 'Meuble',
-    level2: { label: 'Nature du désordre', options: ['Éclat','Fissure','Revêtement','Tâche','Autre'], hasOther: true },
-    level3: null
-  },
-  'Électroménager': {
-    label: 'Électroménager',
-    level2: { label: "Type d'appareil", options: ['Cave à vin','Congélateur','Four','Frigo','Hotte','Lave-vaisselle','Micro-ondes','Piano','Plaque','Autre à préciser'], hasOther: true },
-    level3: { label: 'Nature du désordre', options: ['Dysfonctionnement','Éclat','Rayure','Autre'], hasOther: true }
-  },
-  'Sanitaire': {
-    label: 'Sanitaire',
-    level2: { label: 'Nature du désordre', options: ['Éclat','Rayure','Tâche','Autre à préciser'], hasOther: true },
-    level3: null
-  },
-  'Livraison': {
-    label: 'Livraison',
-    level2: null, level3: null, freeText: true
-  },
-  'Pose': {
-    label: 'Pose',
-    level2: null, level3: null, freeText: true
-  },
-  'Autre': {
-    label: 'Autre',
-    level2: null, level3: null, freeText: true
-  }
+  'Meuble':{ level2:{label:'Nature du désordre',options:['Éclat','Fissure','Revêtement','Tâche','Autre'],hasOther:true},level3:null },
+  'Électroménager':{ level2:{label:"Type d'appareil",options:['Cave à vin','Congélateur','Four','Frigo','Hotte','Lave-vaisselle','Micro-ondes','Piano','Plaque','Autre à préciser'],hasOther:true},level3:{label:'Nature du désordre',options:['Dysfonctionnement','Éclat','Rayure','Autre'],hasOther:true} },
+  'Sanitaire':{ level2:{label:'Nature du désordre',options:['Éclat','Rayure','Tâche','Autre à préciser'],hasOther:true},level3:null },
+  'Livraison':{ level2:null,level3:null,freeText:true },
+  'Pose':{ level2:null,level3:null,freeText:true },
+  'Autre':{ level2:null,level3:null,freeText:true }
 };
 
-const MAX=10;
 let reclamations=[];
 let sigCtx={},sigDrawing={};
 let currentPdfId=null;
+let currentUser=null;
+let historyCache=[];
+
+/* ══ AUTH ══ */
+function showRegister(){document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';}
+function showLogin(){document.getElementById('registerForm').style.display='none';document.getElementById('loginForm').style.display='block';}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pwd=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginErr');
+  err.style.display='none';
+  if(!email||!pwd){err.textContent='Veuillez remplir tous les champs';err.style.display='block';return;}
+  const btn=document.querySelector('#loginForm .login-btn');
+  btn.textContent='Connexion…';btn.disabled=true;
+  const {error}=await supa.auth.signInWithPassword({email,password:pwd});
+  btn.textContent='Se connecter';btn.disabled=false;
+  if(error){err.textContent=error.message==='Invalid login credentials'?'Email ou mot de passe incorrect':error.message;err.style.display='block';}
+}
+
+async function doRegister(){
+  const email=document.getElementById('regEmail').value.trim();
+  const pwd=document.getElementById('regPassword').value;
+  const err=document.getElementById('regErr');
+  err.style.display='none';
+  if(!email||!pwd){err.textContent='Veuillez remplir tous les champs';err.style.display='block';return;}
+  if(pwd.length<6){err.textContent='Le mot de passe doit faire au moins 6 caractères';err.style.display='block';return;}
+  const btn=document.querySelector('#registerForm .login-btn');
+  btn.textContent='Création…';btn.disabled=true;
+  const {error}=await supa.auth.signUp({email,password:pwd});
+  btn.textContent='Créer mon compte';btn.disabled=false;
+  if(error){err.textContent=error.message;err.style.display='block';}
+  else{err.style.background='#E8F5E9';err.style.color='#2E7D32';err.style.border='1px solid #A5D6A7';err.textContent='✅ Compte créé ! Vérifiez votre email pour confirmer.';err.style.display='block';}
+}
+
+async function doLogout(){
+  await supa.auth.signOut();
+  currentUser=null;
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+}
+
+function onLogin(user){
+  currentUser=user;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('userChip').textContent=user.email;
+  document.getElementById('dateVisite').valueAsDate=new Date();
+  renderReclamations();
+  updateHistoryBadge();
+}
+
+supa.auth.onAuthStateChange((event,session)=>{
+  if(session?.user) onLogin(session.user);
+  else{
+    document.getElementById('mainApp').style.display='none';
+    document.getElementById('loginScreen').style.display='flex';
+  }
+});
 
 /* ══ TABS / PAGES ══ */
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='nouveau'?0:1)));
   document.querySelectorAll('.main-page').forEach((el,i)=>el.classList.toggle('active',i===(t==='nouveau'?0:1)));
-  if(t==='historique')renderHistory();
+  if(t==='historique') loadHistory();
   window.scrollTo(0,0);
 }
 
@@ -413,8 +505,6 @@ function showToast(msg){
 
 /* ══ OBSERVATIONS ══ */
 function toggleObs(who){
-  const cb=document.getElementById('obsVendeurNone'+(who==='vendeur'?'':'').replace('vendeur','')+'');
-  // use proper IDs
   const cbId=who==='vendeur'?'obsVendeurNone':'obsClientNone';
   const taId=who==='vendeur'?'obsVendeur':'obsClient';
   const checked=document.getElementById(cbId).checked;
@@ -424,9 +514,6 @@ function toggleObs(who){
   updateObsAnnotation();
 }
 
-function syncObsVendeur(){updateObsAnnotation();}
-function syncObsClient(){updateObsAnnotation();}
-
 function updateObsAnnotation(){
   const vNone=document.getElementById('obsVendeurNone').checked;
   const cNone=document.getElementById('obsClientNone').checked;
@@ -434,12 +521,12 @@ function updateObsAnnotation(){
   const cText=(document.getElementById('obsClient').value||'').trim();
   const ann=document.getElementById('obsAnnotation');
   let lines=[];
-  if(vNone) lines.push('✅ Vendeur : aucune observation');
-  else if(vText) lines.push('📝 Vendeur : observation saisie');
-  if(cNone) lines.push('✅ Client : aucune observation');
-  else if(cText) lines.push('📝 Client : observation saisie');
-  if(lines.length){ann.innerHTML='<strong>Récapitulatif observations :</strong><br>'+lines.join('<br>');ann.style.display='block';}
-  else{ann.style.display='none';}
+  if(vNone)lines.push('✅ Vendeur : aucune observation');
+  else if(vText)lines.push('📝 Vendeur : observation saisie');
+  if(cNone)lines.push('✅ Client : aucune observation');
+  else if(cText)lines.push('📝 Client : observation saisie');
+  if(lines.length){ann.innerHTML='<strong>Récapitulatif :</strong><br>'+lines.join('<br>');ann.style.display='block';}
+  else ann.style.display='none';
 }
 
 function buildSigObsNote(){
@@ -449,11 +536,11 @@ function buildSigObsNote(){
   const cText=(document.getElementById('obsClient').value||'').trim();
   const el=document.getElementById('sigObsNote');
   let parts=[];
-  if(vNone) parts.push('Vendeur : <strong>aucune observation</strong>');
-  else if(vText) parts.push('Vendeur : <strong>observation renseignée</strong>');
+  if(vNone)parts.push('Vendeur : <strong>aucune observation</strong>');
+  else if(vText)parts.push('Vendeur : <strong>observation renseignée</strong>');
   else parts.push('Vendeur : <em>aucune saisie</em>');
-  if(cNone) parts.push('Client : <strong>aucune observation</strong>');
-  else if(cText) parts.push('Client : <strong>observation renseignée</strong>');
+  if(cNone)parts.push('Client : <strong>aucune observation</strong>');
+  else if(cText)parts.push('Client : <strong>observation renseignée</strong>');
   else parts.push('Client : <em>aucune saisie</em>');
   el.innerHTML=`<div class="obs-annotation">📋 <strong>Observations :</strong><br>${parts.join('<br>')}</div>`;
 }
@@ -465,111 +552,50 @@ function addReclamation(){
   setTimeout(()=>{const c=document.querySelectorAll('.rec-card');if(c.length)c[c.length-1].scrollIntoView({behavior:'smooth',block:'start'});},80);
 }
 function removeReclamation(id){reclamations=reclamations.filter(r=>r.id!==id);renderReclamations();}
-function updateRec(id,key,val){const r=reclamations.find(x=>x.id===id);if(r){r[key]=val;}}
-
-function onCatChange(id,val){
-  const r=reclamations.find(x=>x.id===id);
-  if(!r)return;
-  r.categorie=val;r.level2='';r.level3='';r.freeText='';r.freeTextL3='';
-  renderReclamations();
-}
-function onL2Change(id,val){
-  const r=reclamations.find(x=>x.id===id);
-  if(!r)return;
-  r.level2=val;r.level3='';r.freeTextL3='';
-  renderReclamations();
-}
+function updateRec(id,key,val){const r=reclamations.find(x=>x.id===id);if(r)r[key]=val;}
+function onCatChange(id,val){const r=reclamations.find(x=>x.id===id);if(!r)return;r.categorie=val;r.level2='';r.level3='';r.freeText='';r.freeTextL3='';renderReclamations();}
+function onL2Change(id,val){const r=reclamations.find(x=>x.id===id);if(!r)return;r.level2=val;r.level3='';r.freeTextL3='';renderReclamations();}
 
 function renderReclamations(){
-  const list=document.getElementById('reclamations-list');
-  list.innerHTML='';
+  const list=document.getElementById('reclamations-list');list.innerHTML='';
   reclamations.forEach((r,i)=>{
     const d=document.createElement('div');d.className='rec-card';
     const catDef=r.categorie?CATEGORIES[r.categorie]:null;
-
-    // Level 2 dropdown
-    let l2HTML='';
+    let l2HTML='',l3HTML='',autreL2HTML='',freeHTML='';
     if(catDef&&catDef.level2){
       const opts=catDef.level2.options.map(o=>`<option value="${o}"${r.level2===o?' selected':''}>${o}</option>`).join('');
-      l2HTML=`<div class="field">
-        <label>${catDef.level2.label}</label>
-        <select onchange="onL2Change('${r.id}',this.value)"><option value="">— Choisir —</option>${opts}</select>
-      </div>`;
+      l2HTML=`<div class="field"><label>${catDef.level2.label}</label><select onchange="onL2Change('${r.id}',this.value)"><option value="">— Choisir —</option>${opts}</select></div>`;
     }
-
-    // Level 3 dropdown
-    let l3HTML='';
     if(catDef&&catDef.level3&&r.level2&&!r.level2.includes('préciser')){
       const opts=catDef.level3.options.map(o=>`<option value="${o}"${r.level3===o?' selected':''}>${o}</option>`).join('');
-      l3HTML=`<div class="field">
-        <label>${catDef.level3.label}</label>
-        <select onchange="updateRec('${r.id}','level3',this.value);renderReclamations()"><option value="">— Choisir —</option>${opts}</select>
-      </div>`;
-      // Free text if Autre selected at level3
-      if(catDef.level3.hasOther && r.level3==='Autre'){
-        l3HTML+=`<div class="field">
-          <label>Préciser la nature du désordre</label>
-          <input type="text" placeholder="Décrire le désordre…" value="${r.freeTextL3||''}" oninput="updateRec('${r.id}','freeTextL3',this.value)">
-        </div>`;
+      l3HTML=`<div class="field"><label>${catDef.level3.label}</label><select onchange="updateRec('${r.id}','level3',this.value);renderReclamations()"><option value="">— Choisir —</option>${opts}</select></div>`;
+      if(catDef.level3.hasOther&&r.level3==='Autre'){
+        l3HTML+=`<div class="field"><label>Préciser la nature du désordre</label><input type="text" placeholder="Décrire…" value="${r.freeTextL3||''}" oninput="updateRec('${r.id}','freeTextL3',this.value)"></div>`;
       }
     }
-
-    // "Autre" free text for Meuble level2
-    let autreL2HTML='';
-    if(catDef&&catDef.level2&&catDef.level2.hasOther&&r.level2==='Autre'){
-      autreL2HTML=`<div class="field">
-        <label>Préciser le désordre</label>
-        <input type="text" placeholder="Décrire le désordre…" value="${r.freeText||''}" oninput="updateRec('${r.id}','freeText',this.value)">
-      </div>`;
+    if(catDef&&catDef.level2&&catDef.level2.hasOther&&(r.level2==='Autre'||r.level2==='Autre à préciser')){
+      autreL2HTML=`<div class="field"><label>Préciser</label><input type="text" placeholder="Préciser…" value="${r.freeText||''}" oninput="updateRec('${r.id}','freeText',this.value)"></div>`;
     }
-
-    // "Autre à préciser" for Électroménager appareil or Sanitaire
-    if(catDef&&catDef.level2&&catDef.level2.hasOther&&r.level2==='Autre à préciser'){
-      autreL2HTML=`<div class="field">
-        <label>Préciser</label>
-        <input type="text" placeholder="Préciser…" value="${r.freeText||''}" oninput="updateRec('${r.id}','freeText',this.value)">
-      </div>`;
-    }
-
-    // Free text for Livraison, Pose, Autre
-    let freeHTML='';
     if(catDef&&catDef.freeText){
-      freeHTML=`<div class="field">
-        <label>Préciser</label>
-        <input type="text" placeholder="Décrire le problème…" value="${r.freeText||''}" oninput="updateRec('${r.id}','freeText',this.value)">
-      </div>`;
+      freeHTML=`<div class="field"><label>Préciser</label><input type="text" placeholder="Décrire le problème…" value="${r.freeText||''}" oninput="updateRec('${r.id}','freeText',this.value)"></div>`;
     }
-
     const catOpts=Object.keys(CATEGORIES).map(k=>`<option value="${k}"${r.categorie===k?' selected':''}>${k}</option>`).join('');
-
     d.innerHTML=`
-      <div class="rec-card-head">
-        <span class="rec-card-title">Réclamation ${i+1}</span>
+      <div class="rec-card-head"><span class="rec-card-title">Réclamation ${i+1}</span>
         <button style="background:none;border:none;cursor:pointer;padding:4px" onclick="removeReclamation('${r.id}')">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
         </button>
       </div>
       <div class="rec-card-body">
-        <div class="field">
-          <label>Catégorie</label>
-          <select onchange="onCatChange('${r.id}',this.value)">
-            <option value="">— Choisir —</option>${catOpts}
-          </select>
-        </div>
-        ${l2HTML}
-        ${autreL2HTML}
-        ${l3HTML}
-        ${freeHTML}
-        <div class="photo-zone">
-          <div class="pz-icon">📷</div>
-          <p>Appuyer pour photo / galerie</p>
+        <div class="field"><label>Catégorie</label><select onchange="onCatChange('${r.id}',this.value)"><option value="">— Choisir —</option>${catOpts}</select></div>
+        ${l2HTML}${autreL2HTML}${l3HTML}${freeHTML}
+        <div class="photo-zone"><div class="pz-icon">📷</div><p>Appuyer pour photo / galerie</p>
           <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotos('${r.id}',this)">
         </div>
         <div class="photo-grid" id="prev-${r.id}">
           ${r.photos.map((p,pi)=>`<div class="photo-item"><img src="${p}" alt=""><button class="del-photo" onclick="removePhoto('${r.id}',${pi})">✕</button></div>`).join('')}
         </div>
-        <div class="field" style="margin-top:10px">
-          <label>Observation spécifique</label>
+        <div class="field" style="margin-top:10px"><label>Observation spécifique</label>
           <textarea rows="3" placeholder="Détails supplémentaires…" onchange="updateRec('${r.id}','obs',this.value)">${r.obs}</textarea>
         </div>
       </div>`;
@@ -577,24 +603,43 @@ function renderReclamations(){
   });
 }
 
+/* Compress image before storing */
+function compressPhoto(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=800;
+      let w=img.width,h=img.height;
+      if(w>MAX){h=h*MAX/w;w=MAX;}
+      if(h>MAX){w=w*MAX/h;h=MAX;}
+      const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',0.7));
+    };
+    img.src=dataUrl;
+  });
+}
+
 function handlePhotos(id,input){
   const r=reclamations.find(x=>x.id===id);if(!r)return;
   Array.from(input.files).forEach(f=>{
     const rd=new FileReader();
-    rd.onload=e=>{r.photos.push(e.target.result);renderReclamations();};
+    rd.onload=async e=>{
+      const compressed=await compressPhoto(e.target.result);
+      r.photos.push(compressed);renderReclamations();
+    };
     rd.readAsDataURL(f);
   });
 }
 function removePhoto(id,idx){const r=reclamations.find(x=>x.id===id);if(r){r.photos.splice(idx,1);renderReclamations();}}
 
-/* ══ LABEL RÉCLAMATION ══ */
-function recLabel(r){
+function recLabelFromData(r){
   const parts=[r.categorie];
-  if(r.level2&&r.level2!=='Autre'&&r.level2!=='Autre à préciser') parts.push(r.level2);
-  else if(r.level2&&r.freeText) parts.push(r.freeText);
-  if(r.level3&&r.level3!=='Autre') parts.push(r.level3);
-  else if(r.level3==='Autre'&&r.freeTextL3) parts.push(r.freeTextL3);
-  else if(r.level3==='Autre') parts.push('Autre');
+  if(r.level2&&r.level2!=='Autre'&&r.level2!=='Autre à préciser')parts.push(r.level2);
+  else if(r.level2&&r.freeText)parts.push(r.freeText);
+  if(r.level3&&r.level3!=='Autre')parts.push(r.level3);
+  else if(r.level3==='Autre'&&r.freeTextL3)parts.push(r.freeTextL3);
+  else if(r.level3==='Autre')parts.push('Autre');
   return parts.filter(Boolean).join(' › ')||'Non renseigné';
 }
 
@@ -625,63 +670,71 @@ function buildResume(){
     <div class="sum-row"><span class="sum-key">Réclamations</span><span class="sum-val">${reclamations.length} désordre${reclamations.length>1?'s':''}</span></div>`;
 }
 
-/* ══ HISTORIQUE ══ */
-/* Storage avec fallback mémoire (compatibilité Safari iOS) */
-let _memHistory=[];
-function _storageAvailable(){try{const k='__test__';localStorage.setItem(k,k);localStorage.removeItem(k);return true;}catch(e){return false;}}
-const _useLS=_storageAvailable();
-function getHistory(){
-  if(_useLS){try{return JSON.parse(localStorage.getItem('rapports_history')||'[]');}catch(e){}}
-  return _memHistory;
-}
-function saveToHistory(r){
-  let h=getHistory();h.unshift(r);if(h.length>MAX)h=h.slice(0,MAX);
-  if(_useLS){try{localStorage.setItem('rapports_history',JSON.stringify(h));}catch(e){_memHistory=h;}}
-  else{_memHistory=h;}
-}
-function deleteFromHistory(id){
-  const h=getHistory().filter(r=>r.id!==id);
-  if(_useLS){try{localStorage.setItem('rapports_history',JSON.stringify(h));}catch(e){_memHistory=h;}}
-  else{_memHistory=h;}
-  renderHistory();showToast('🗑️ Rapport supprimé');
+/* ══ SUPABASE HISTORY ══ */
+async function loadHistory(){
+  const container=document.getElementById('history-content');
+  container.innerHTML=`<div class="hist-loading">⏳ Chargement…</div>`;
+  const {data,error}=await supa.from('rapports')
+    .select('id,created_at,date_visite,vendeur_nom,client_prenom,client_nom,adresse,reclamations,observations,signatures')
+    .order('created_at',{ascending:false})
+    .limit(10);
+  if(error){container.innerHTML=`<div class="hist-loading">❌ Erreur : ${error.message}</div>`;return;}
+  historyCache=data||[];
+  renderHistory();
 }
 
-function updateHistoryBadge(){
-  const n=getHistory().length;
-  document.getElementById('tab-hist').textContent=n>0?`Historique (${n})`:'Historique';
+async function saveToSupabase(data){
+  const {error}=await supa.from('rapports').insert({
+    user_id:currentUser.id,
+    date_visite:data.date_visite||null,
+    vendeur_nom:data.vendeur_nom,
+    client_prenom:data.client_prenom,
+    client_nom:data.client_nom,
+    adresse:data.adresse,
+    reclamations:data.reclamations,
+    observations:data.observations,
+    signatures:data.signatures
+  });
+  return error;
+}
+
+async function deleteFromSupabase(id){
+  const {error}=await supa.from('rapports').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(error){showToast('❌ Erreur suppression');return;}
+  historyCache=historyCache.filter(r=>r.id!==id);
+  renderHistory();
+  showToast('🗑️ Rapport supprimé');
 }
 
 function renderHistory(){
-  const history=getHistory();
   const container=document.getElementById('history-content');
-  if(!history.length){
-    container.innerHTML=`
-      <div class="hist-header"><h2>Mes rapports</h2></div>
+  if(!historyCache.length){
+    container.innerHTML=`<div class="hist-header"><h2>Mes rapports</h2></div>
       <div class="hist-empty"><div class="hist-empty-icon">📂</div>
       <p style="font-weight:700;font-size:17px;margin-bottom:6px;color:#1C1C1E">Aucun rapport</p>
-      <p style="font-size:14px">Vos rapports générés apparaîtront ici</p></div>`;
+      <p style="font-size:14px">Vos rapports apparaîtront ici après génération</p></div>`;
     return;
   }
   const now=new Date();
-  const thisMonth=history.filter(r=>{
-    if(!r.dateVisite)return false;
-    const d=new Date(r.dateVisite+'T00:00:00');
+  const thisMonth=historyCache.filter(r=>{
+    if(!r.date_visite)return false;
+    const d=new Date(r.date_visite);
     return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
   }).length;
   let html=`<div class="hist-header"><h2>Mes rapports</h2></div>
     <div class="hist-stats">
       <div class="stat-card"><div class="stat-label">Ce mois</div><div class="stat-value">${thisMonth}</div></div>
-      <div class="stat-card"><div class="stat-label">Total (${MAX} derniers)</div><div class="stat-value">${history.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Total (10 derniers)</div><div class="stat-value">${historyCache.length}</div></div>
     </div><div class="hist-list">`;
-  history.forEach(r=>{
-    const date=r.dateVisite?new Date(r.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
-    const client=(r.clientPrenom+' '+r.clientNom).trim()||'Client inconnu';
+  historyCache.forEach(r=>{
+    const date=r.date_visite?new Date(r.date_visite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+    const client=((r.client_prenom||'')+' '+(r.client_nom||'')).trim()||'Client inconnu';
     const nb=r.reclamations?r.reclamations.length:0;
     html+=`<div class="hist-item" onclick="openSheet('${r.id}')">
       <div class="hist-icon">📋</div>
       <div class="hist-info">
         <div class="hist-client">${client}</div>
-        <div class="hist-meta">${r.vendeurNom||'—'}</div>
+        <div class="hist-meta">${r.vendeur_nom||'—'}</div>
       </div>
       <div class="hist-right">
         <div class="hist-nb">${nb} désordre${nb>1?'s':''}</div>
@@ -694,25 +747,28 @@ function renderHistory(){
   updateHistoryBadge();
 }
 
+function updateHistoryBadge(){
+  const n=historyCache.length;
+  document.getElementById('tab-hist').textContent=n>0?`Historique (${n})`:'Historique';
+}
+
 /* ══ BOTTOM SHEET ══ */
 let currentSheetId=null;
 function openSheet(id){
-  const data=getHistory().find(r=>r.id===id);if(!data)return;
+  const data=historyCache.find(r=>r.id===id);if(!data)return;
   currentSheetId=id;
-  const date=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
-  const client=(data.clientPrenom+' '+data.clientNom).trim()||'—';
+  const date=data.date_visite?new Date(data.date_visite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+  const client=((data.client_prenom||'')+' '+(data.client_nom||'')).trim()||'—';
   const nb=data.reclamations?data.reclamations.length:0;
   document.getElementById('sheetTitle').textContent=client;
   let allPhotos=[];
   if(data.reclamations)data.reclamations.forEach(r=>{if(r.photos)allPhotos=allPhotos.concat(r.photos);});
   let html=`
     <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">📅</span> Date</span><span class="detail-val">${date}</span></div>
-    <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">👤</span> Vendeur</span><span class="detail-val">${data.vendeurNom||'—'}</span></div>
+    <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">👤</span> Vendeur</span><span class="detail-val">${data.vendeur_nom||'—'}</span></div>
     <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">📋</span> Désordres</span><span class="detail-val">${nb} réclamation${nb>1?'s':''}</span></div>
     <div class="detail-row"><span class="detail-key"><span class="detail-key-icon">📍</span> Adresse</span><span class="detail-val" style="max-width:52%;text-align:right;font-size:13px">${data.adresse||'—'}</span></div>`;
-  if(allPhotos.length){
-    html+=`<div class="sheet-photos">${allPhotos.map(p=>`<img src="${p}" alt="">`).join('')}</div>`;
-  }
+  if(allPhotos.length)html+=`<div class="sheet-photos">${allPhotos.map(p=>`<img src="${p}" alt="">`).join('')}</div>`;
   document.getElementById('sheetContent').innerHTML=html;
   document.getElementById('sheetActions').innerHTML=`
     <button class="sheet-action" onclick="openPdfView('${id}')">
@@ -732,49 +788,57 @@ function openSheet(id){
 }
 function closeSheet(e){if(e.target===document.getElementById('sheetOverlay'))closeSheetDirect();}
 function closeSheetDirect(){document.getElementById('sheetOverlay').classList.remove('open');document.body.style.overflow='';}
-function confirmDelete(id){if(confirm('Supprimer ce rapport ?')){closeSheetDirect();setTimeout(()=>deleteFromHistory(id),200);}}
+function confirmDelete(id){if(confirm('Supprimer ce rapport définitivement ?')){closeSheetDirect();deleteFromSupabase(id);}}
+
 function editRapport(id){
-  const data=getHistory().find(r=>r.id===id);if(!data)return;
+  const data=historyCache.find(r=>r.id===id);if(!data)return;
   closeSheetDirect();
-  document.getElementById('dateVisite').value=data.dateVisite||'';
-  document.getElementById('vendeurNom').value=data.vendeurNom||'';
-  document.getElementById('clientPrenom').value=data.clientPrenom||'';
-  document.getElementById('clientNom').value=data.clientNom||'';
+  document.getElementById('dateVisite').value=data.date_visite||'';
+  document.getElementById('vendeurNom').value=data.vendeur_nom||'';
+  document.getElementById('clientPrenom').value=data.client_prenom||'';
+  document.getElementById('clientNom').value=data.client_nom||'';
   document.getElementById('adresse').value=data.adresse||'';
   reclamations=JSON.parse(JSON.stringify(data.reclamations||[]));
-  // Restore observations
-  if(data.observations){
-    document.getElementById('obsVendeur').value=data.observations.vendeurText||'';
-    document.getElementById('obsClient').value=data.observations.clientText||'';
-    document.getElementById('obsVendeurNone').checked=!!data.observations.vendeurNone;
-    document.getElementById('obsClientNone').checked=!!data.observations.clientNone;
-    if(data.observations.vendeurNone){document.getElementById('obsVendeur').disabled=true;document.getElementById('obsVendeur').style.opacity='.4';}
-    if(data.observations.clientNone){document.getElementById('obsClient').disabled=true;document.getElementById('obsClient').style.opacity='.4';}
-  }
+  const obs=data.observations||{};
+  document.getElementById('obsVendeur').value=obs.vendeurText||'';
+  document.getElementById('obsClient').value=obs.clientText||'';
+  document.getElementById('obsVendeurNone').checked=!!obs.vendeurNone;
+  document.getElementById('obsClientNone').checked=!!obs.clientNone;
+  if(obs.vendeurNone){document.getElementById('obsVendeur').disabled=true;document.getElementById('obsVendeur').style.opacity='.4';}
+  if(obs.clientNone){document.getElementById('obsClient').disabled=true;document.getElementById('obsClient').style.opacity='.4';}
   renderReclamations();
-  deleteFromHistory(id);
   switchTab('nouveau');goPage(0);
   showToast('✏️ Rapport chargé pour modification');
 }
 
-/* ══ VUE PDF PREVIEW ══ */
+/* ══ VUE PDF ══ */
 function openPdfView(id){
-  const data=getHistory().find(r=>r.id===id);if(!data)return;
+  const raw=historyCache.find(r=>r.id===id);if(!raw)return;
   currentPdfId=id;closeSheetDirect();
+  // Normalize keys for display/pdf
+  const data={
+    id:raw.id,
+    dateVisite:raw.date_visite,
+    vendeurNom:raw.vendeur_nom,
+    clientPrenom:raw.client_prenom,
+    clientNom:raw.client_nom,
+    adresse:raw.adresse,
+    reclamations:raw.reclamations||[],
+    observations:raw.observations||{},
+    signatures:raw.signatures||{}
+  };
   const date=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
-  const client=(data.clientPrenom+' '+data.clientNom).trim()||'—';
+  const client=((data.clientPrenom||'')+' '+(data.clientNom||'')).trim()||'—';
   const refId='RPT-'+String(data.id).slice(-6).toUpperCase();
   document.getElementById('pdfNavTitle').textContent=client;
-  const obs=data.observations||{};
-
+  const obs=data.observations;
   let body=`<div class="pdf-doc">
     <div class="pdf-doc-header">
       <div class="pdf-doc-title">RAPPORT DE VISITE</div>
       <div class="pdf-doc-sub">Constat des désordres &amp; réclamations</div>
       <div class="pdf-doc-ref">Réf. ${refId} · ${date}</div>
     </div>
-    <div class="pdf-section">
-      <div class="pdf-section-label">Informations générales</div>
+    <div class="pdf-section"><div class="pdf-section-label">Informations générales</div>
       <div class="pdf-info-grid">
         <div class="pdf-info-cell"><div class="pk">Date</div><div class="pv">${date}</div></div>
         <div class="pdf-info-cell"><div class="pk">Vendeur</div><div class="pv">${data.vendeurNom||'—'}</div></div>
@@ -782,39 +846,28 @@ function openPdfView(id){
         <div class="pdf-info-cell"><div class="pk">Adresse</div><div class="pv" style="font-size:12px">${data.adresse||'—'}</div></div>
       </div>
     </div>`;
-
-  if(data.reclamations&&data.reclamations.length){
+  if(data.reclamations.length){
     body+=`<div class="pdf-section"><div class="pdf-section-label">Désordres constatés (${data.reclamations.length})</div>`;
     data.reclamations.forEach((r,i)=>{
-      body+=`<div class="pdf-rec">
-        <div class="pdf-rec-head">Réclamation ${i+1} — ${recLabelFromData(r)}</div>
+      body+=`<div class="pdf-rec"><div class="pdf-rec-head">Réclamation ${i+1} — ${recLabelFromData(r)}</div>
         <div class="pdf-rec-body">
           ${r.obs?`<div class="pdf-rec-obs">${r.obs}</div>`:'<div class="pdf-rec-obs" style="color:#8E8E93;font-style:italic">Aucune observation spécifique</div>'}
           ${r.photos&&r.photos.length?`<div class="pdf-rec-photos">${r.photos.map(p=>`<img src="${p}" alt="">`).join('')}</div>`:''}
-        </div>
-      </div>`;
+        </div></div>`;
     });
     body+='</div>';
   }
-
-  // Observations
   body+=`<div class="pdf-section"><div class="pdf-section-label">Observations générales</div>
-    <div class="pdf-obs-box"><div class="pok">Vendeur</div>
-      <div class="pov ${obs.vendeurNone||(!obs.vendeurText)?'none':''}">${obs.vendeurNone?'Aucune observation':(obs.vendeurText||'Non renseigné')}</div>
-    </div>
-    <div class="pdf-obs-box"><div class="pok">Client</div>
-      <div class="pov ${obs.clientNone||(!obs.clientText)?'none':''}">${obs.clientNone?'Aucune observation':(obs.clientText||'Non renseigné')}</div>
-    </div>
+    <div class="pdf-obs-box"><div class="pok">Vendeur</div><div class="pov ${obs.vendeurNone||!obs.vendeurText?'none':''}">${obs.vendeurNone?'Aucune observation':(obs.vendeurText||'Non renseigné')}</div></div>
+    <div class="pdf-obs-box"><div class="pok">Client</div><div class="pov ${obs.clientNone||!obs.clientText?'none':''}">${obs.clientNone?'Aucune observation':(obs.clientText||'Non renseigné')}</div></div>
   </div>`;
-
-  if(data.signatures){
+  if(data.signatures&&(data.signatures.sigVendeur||data.signatures.sigClient)){
     const vNote=obs.vendeurNone?'Aucune observation vendeur':(obs.vendeurText?'Observation vendeur renseignée':'');
     const cNote=obs.clientNone?'Aucune observation client':(obs.clientText?'Observation client renseignée':'');
-    body+=`<div class="pdf-section">
-      <div class="pdf-section-label">Signatures</div>
+    body+=`<div class="pdf-section"><div class="pdf-section-label">Signatures</div>
       <div class="pdf-sig-row">
-        <div class="pdf-sig-box"><img src="${data.signatures.sigVendeur}" alt="vendeur"><div class="pdf-sig-lbl">Vendeur</div></div>
-        <div class="pdf-sig-box"><img src="${data.signatures.sigClient}" alt="client"><div class="pdf-sig-lbl">Client</div></div>
+        ${data.signatures.sigVendeur?`<div class="pdf-sig-box"><img src="${data.signatures.sigVendeur}" alt="vendeur"><div class="pdf-sig-lbl">Vendeur</div></div>`:''}
+        ${data.signatures.sigClient?`<div class="pdf-sig-box"><img src="${data.signatures.sigClient}" alt="client"><div class="pdf-sig-lbl">Client</div></div>`:''}
       </div>
       ${(vNote||cNote)?`<div class="pdf-sig-note">${[vNote,cNote].filter(Boolean).join(' · ')}</div>`:''}
     </div>`;
@@ -826,21 +879,21 @@ function openPdfView(id){
 }
 function closePdfView(){document.getElementById('pdfOverlay').classList.remove('open');document.body.style.overflow='';currentPdfId=null;}
 
-function recLabelFromData(r){
-  const parts=[r.categorie];
-  if(r.level2&&r.level2!=='Autre'&&r.level2!=='Autre à préciser') parts.push(r.level2);
-  else if(r.level2&&r.freeText) parts.push(r.freeText);
-  if(r.level3&&r.level3!=='Autre') parts.push(r.level3);
-  else if(r.level3==='Autre'&&r.freeTextL3) parts.push(r.freeTextL3);
-  else if(r.level3==='Autre') parts.push('Autre');
-  return parts.filter(Boolean).join(' › ')||'Non renseigné';
+/* ══ DOWNLOAD / SHARE ══ */
+function getNormalizedData(id){
+  const raw=historyCache.find(r=>r.id===id);if(!raw)return null;
+  return{
+    id:raw.id,dateVisite:raw.date_visite,
+    vendeurNom:raw.vendeur_nom,clientPrenom:raw.client_prenom,clientNom:raw.client_nom,adresse:raw.adresse,
+    reclamations:raw.reclamations||[],observations:raw.observations||{},signatures:raw.signatures||{}
+  };
 }
 
-/* ══ DOWNLOAD / SHARE ══ */
-function doDownload(){if(!currentPdfId)return;redownloadPDF(currentPdfId);}
+function doDownload(){if(!currentPdfId)return;const data=getNormalizedData(currentPdfId);if(data)downloadPDF(data);}
+
 async function doShare(){
   if(!currentPdfId)return;
-  const data=getHistory().find(r=>r.id===currentPdfId);if(!data)return;
+  const data=getNormalizedData(currentPdfId);if(!data)return;
   if(typeof window.jspdf!=='undefined'&&navigator.share&&navigator.canShare){
     try{
       const doc=buildPDFDoc(data);const blob=doc.output('blob');
@@ -850,12 +903,12 @@ async function doShare(){
     }catch(e){if(e.name!=='AbortError')console.warn(e);}
   }
   const date=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
-  const client=(data.clientPrenom+' '+data.clientNom).trim()||'Client';
-  let body=`Bonjour,\n\nRAPPORT DE VISITE\n${'─'.repeat(28)}\nDate : ${date}\nVendeur : ${data.vendeurNom||'—'}\nClient : ${client}\nAdresse : ${data.adresse||'—'}\n\n`;
+  const client=((data.clientPrenom||'')+' '+(data.clientNom||'')).trim()||'Client';
   const obs=data.observations||{};
-  body+=`OBSERVATIONS\n${'─'.repeat(28)}\nVendeur : ${obs.vendeurNone?'Aucune observation':(obs.vendeurText||'Non renseigné')}\nClient : ${obs.clientNone?'Aucune observation':(obs.clientText||'Non renseigné')}\n\n`;
-  body+=`DÉSORDRES (${data.reclamations?data.reclamations.length:0})\n${'─'.repeat(28)}\n`;
-  if(data.reclamations)data.reclamations.forEach((r,i)=>{body+=`${i+1}. ${recLabelFromData(r)}\n`;if(r.obs)body+=`   › ${r.obs}\n`;});
+  let body=`Bonjour,\n\nRAPPORT DE VISITE\n${'─'.repeat(28)}\nDate : ${date}\nVendeur : ${data.vendeurNom||'—'}\nClient : ${client}\nAdresse : ${data.adresse||'—'}\n\n`;
+  body+=`OBSERVATIONS\n${'─'.repeat(28)}\nVendeur : ${obs.vendeurNone?'Aucune':(obs.vendeurText||'Non renseigné')}\nClient : ${obs.clientNone?'Aucune':(obs.clientText||'Non renseigné')}\n\n`;
+  body+=`DÉSORDRES (${data.reclamations.length})\n${'─'.repeat(28)}\n`;
+  data.reclamations.forEach((r,i)=>{body+=`${i+1}. ${recLabelFromData(r)}\n`;if(r.obs)body+=`   › ${r.obs}\n`;});
   body+=`\nGénéré le ${new Date().toLocaleDateString('fr-FR')}`;
   window.location.href=`mailto:?subject=${encodeURIComponent('Rapport de visite — '+client+' — '+date)}&body=${encodeURIComponent(body)}`;
   showToast('📧 Ouverture messagerie…');
@@ -873,16 +926,13 @@ function buildPDFDoc(data){
   doc.setFontSize(11);doc.setFont('helvetica','normal');doc.text('Constat des désordres & réclamations',PW/2,23,{align:'center'});
   const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
   doc.setFontSize(9);doc.text('Date : '+ds,PW/2,31,{align:'center'});y=46;
-
   doc.setFillColor(...ltB);doc.roundedRect(M,y,CW,40,3,3,'F');doc.setDrawColor(...blue);doc.setLineWidth(0.4);doc.roundedRect(M,y,CW,40,3,3,'S');
   doc.setTextColor(...dkB);doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text('Informations de la visite',M+4,y+8);
-  [['Vendeur',data.vendeurNom||'—'],['Client',(data.clientPrenom+' '+data.clientNom).trim()||'—'],['Adresse',data.adresse||'—']].forEach((row,i)=>{
+  [['Vendeur',data.vendeurNom||'—'],['Client',((data.clientPrenom||'')+' '+(data.clientNom||'')).trim()||'—'],['Adresse',data.adresse||'—']].forEach((row,i)=>{
     const ry=y+15+i*8;doc.setFont('helvetica','bold');doc.setTextColor(...gray);doc.text(row[0]+' :',M+4,ry);
     doc.setFont('helvetica','normal');doc.setTextColor(26,26,46);doc.text(doc.splitTextToSize(row[1],CW-32),M+28,ry);
   });
   y+=48;
-
-  // Réclamations
   doc.setTextColor(...blue);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text(`Désordres constatés (${data.reclamations.length})`,M,y+6);y+=12;
   for(let i=0;i<data.reclamations.length;i++){
     const r=data.reclamations[i];if(y>260){doc.addPage();y=M;}
@@ -892,8 +942,6 @@ function buildPDFDoc(data){
     if(r.photos&&r.photos.length){const phW=(CW-4)/2,phH=55;let px=M,col=0;for(const ph of r.photos){if(y+phH>278){doc.addPage();y=M;px=M;col=0;}try{doc.addImage(ph,'JPEG',px,y,phW,phH,'','FAST');doc.setDrawColor(...gray);doc.setLineWidth(0.15);doc.rect(px,y,phW,phH);}catch(e){}col++;if(col%2===0){px=M;y+=phH+4;}else px=M+phW+4;}if(col%2!==0)y+=phH+4;}
     y+=4;if(y<263){doc.setDrawColor(...ltB);doc.setLineWidth(0.4);doc.line(M,y-2,M+CW,y-2);}
   }
-
-  // Observations générales
   if(y>240){doc.addPage();y=M;}y+=4;
   const obs=data.observations||{};
   doc.setTextColor(...blue);doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('Observations générales',M,y+6);y+=12;
@@ -902,11 +950,8 @@ function buildPDFDoc(data){
     if(y+h>275){doc.addPage();y=M;}
     doc.setFillColor(250,250,250);doc.setDrawColor(...gray);doc.setLineWidth(0.2);doc.roundedRect(M,y,CW,h,2,2,'FD');
     doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...gray);doc.text(lbl.toUpperCase(),M+4,y+5);
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,26,46);doc.text(lines,M+4,y+11);
-    y+=h+4;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,26,46);doc.text(lines,M+4,y+11);y+=h+4;
   });
-
-  // Signatures
   if(y>225){doc.addPage();y=M;}y+=4;
   doc.setTextColor(...blue);doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('Signatures',M,y+6);y+=12;
   const sigW=(CW-8)/2,sigH=38;
@@ -916,7 +961,6 @@ function buildPDFDoc(data){
     if(data.signatures&&data.signatures[key]){try{doc.addImage(data.signatures[key],'PNG',sx+2,y+8,sigW-4,sigH,'','FAST');}catch(e){}}
   });
   y+=sigH+14;
-  // Note observations sous signatures
   const vNote=obs.vendeurNone?'Vendeur : aucune observation':(obs.vendeurText?'Vendeur : observation renseignée':'');
   const cNote=obs.clientNone?'Client : aucune observation':(obs.clientText?'Client : observation renseignée':'');
   if(vNote||cNote){
@@ -924,23 +968,31 @@ function buildPDFDoc(data){
     doc.setFillColor(255,248,225);doc.setDrawColor(255,224,130);doc.setLineWidth(0.3);
     const noteLines=doc.splitTextToSize(noteStr,CW-8);const noteH=noteLines.length*5+8;
     doc.roundedRect(M,y,CW,noteH,2,2,'FD');
-    doc.setTextColor(121,85,72);doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text(noteLines,M+4,y+6);
-    y+=noteH+4;
+    doc.setTextColor(121,85,72);doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text(noteLines,M+4,y+6);y+=noteH+4;
   }
-
   const pages=doc.internal.getNumberOfPages();
   for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFillColor(...blue);doc.rect(0,285,PW,12,'F');doc.setTextColor(...white);doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text(`Document généré le ${new Date().toLocaleDateString('fr-FR')} — Page ${p}/${pages}`,PW/2,291,{align:'center'});}
   return doc;
 }
 
+function downloadPDF(data){
+  if(typeof window.jspdf==='undefined'){showToast('⏳ Chargement, réessayez…');return;}
+  const doc=buildPDFDoc(data);
+  const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR').replace(/\//g,'-'):'date';
+  doc.save(`rapport_${data.clientNom||'client'}_${ds}.pdf`);
+  showToast('✅ PDF téléchargé !');
+}
+
+/* ══ GENERATE & SAVE ══ */
 async function generateAndSave(){
   if(typeof window.jspdf==='undefined'){showToast('⏳ Chargement, réessayez…');return;}
-  const data={
-    id:'rapport_'+Date.now(),savedAt:new Date().toISOString(),
-    dateVisite:document.getElementById('dateVisite').value,
-    vendeurNom:document.getElementById('vendeurNom').value,
-    clientPrenom:document.getElementById('clientPrenom').value,
-    clientNom:document.getElementById('clientNom').value,
+  const btn=document.getElementById('saveBtn');
+  btn.disabled=true;btn.textContent='⏳ Sauvegarde…';
+  const payload={
+    date_visite:document.getElementById('dateVisite').value||null,
+    vendeur_nom:document.getElementById('vendeurNom').value,
+    client_prenom:document.getElementById('clientPrenom').value,
+    client_nom:document.getElementById('clientNom').value,
     adresse:document.getElementById('adresse').value,
     reclamations:JSON.parse(JSON.stringify(reclamations)),
     observations:{
@@ -954,44 +1006,35 @@ async function generateAndSave(){
       sigClient:document.getElementById('sigClient').toDataURL('image/png')
     }
   };
-  try{
-    saveToHistory(data);
-    const doc=buildPDFDoc(data);
-    const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR').replace(/\//g,'-'):'date';
-    doc.save(`rapport_${data.clientNom||'client'}_${ds}.pdf`);
-    updateHistoryBadge();
-    showToast('✅ PDF généré et sauvegardé !');
-  }catch(e){showToast('❌ Erreur : '+e.message);}
-}
-
-function redownloadPDF(id){
-  if(typeof window.jspdf==='undefined'){showToast('⏳ Chargement, réessayez…');return;}
-  const data=getHistory().find(r=>r.id===id);if(!data){showToast('Introuvable');return;}
-  try{
-    const doc=buildPDFDoc(data);
-    const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR').replace(/\//g,'-'):'date';
-    doc.save(`rapport_${data.clientNom||'client'}_${ds}.pdf`);
-    showToast('✅ PDF téléchargé !');
-  }catch(e){showToast('❌ Erreur PDF');}
+  const error=await saveToSupabase(payload);
+  btn.disabled=false;
+  btn.innerHTML=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Générer &amp; sauvegarder`;
+  if(error){showToast('❌ Erreur sauvegarde : '+error.message);return;}
+  // Build normalized data for PDF
+  const normalized={
+    dateVisite:payload.date_visite,vendeurNom:payload.vendeur_nom,
+    clientPrenom:payload.client_prenom,clientNom:payload.client_nom,
+    adresse:payload.adresse,reclamations:payload.reclamations,
+    observations:payload.observations,signatures:payload.signatures
+  };
+  downloadPDF(normalized);
+  showToast('✅ Sauvegardé dans Supabase !');
+  // Refresh history cache
+  await loadHistory();
+  updateHistoryBadge();
 }
 
 function resetAll(){
   if(!confirm('Réinitialiser le formulaire ?'))return;
   ['dateVisite','vendeurNom','clientPrenom','clientNom','adresse'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('dateVisite').valueAsDate=new Date();
-  document.getElementById('obsVendeur').value='';document.getElementById('obsVendeur').disabled=false;document.getElementById('obsVendeur').style.opacity='1';
-  document.getElementById('obsClient').value='';document.getElementById('obsClient').disabled=false;document.getElementById('obsClient').style.opacity='1';
+  ['obsVendeur','obsClient'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).disabled=false;document.getElementById(id).style.opacity='1';});
   document.getElementById('obsVendeurNone').checked=false;document.getElementById('obsClientNone').checked=false;
   document.getElementById('obsAnnotation').style.display='none';
   reclamations=[];renderReclamations();
   ['sigVendeur','sigClient'].forEach(id=>{clearSig(id);delete sigCtx[id];});
   goPage(0);showToast('Formulaire réinitialisé');
 }
-
-/* INIT */
-document.getElementById('dateVisite').valueAsDate=new Date();
-renderReclamations();
-updateHistoryBadge();
 </script>
 </body>
 </html>
