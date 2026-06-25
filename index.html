@@ -15,6 +15,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-s
 :root{--blue:#1565C0;--blue-dark:#0D47A1;--blue-light:#E3F2FD;--red:#FF3B30;--green:#34C759;--gray:#8E8E93;--border:#E5E5EA;--card:#FFFFFF;--shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.06)}
 .app{max-width:430px;margin:0 auto;padding:0 0 100px;min-height:100vh}
 
+/* ── HOME SCREEN ── */
+#homeScreen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;background:linear-gradient(160deg,#1565C0,#0D47A1)}
+.home-logo{font-size:60px;margin-bottom:12px}
+.home-title{font-size:24px;font-weight:800;color:#fff;margin-bottom:6px;text-align:center}
+.home-sub{font-size:14px;color:rgba(255,255,255,.7);margin-bottom:8px;text-align:center}
+.home-user{background:rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;font-size:12px;color:rgba(255,255,255,.85);margin-bottom:28px;display:inline-block}
+.home-card{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:14px}
+.home-btn{display:flex;align-items:center;gap:16px;padding:18px 20px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;width:100%;transition:.12s;text-align:left}
+.home-btn:active{transform:scale(.97)}
+.home-btn-new{background:#1C1C1E;color:#fff}
+.home-btn-hist{background:#F2F2F7;color:#1C1C1E}
+.home-btn-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(255,255,255,.15)}
+.home-btn-hist .home-btn-icon{background:#E3F2FD}
+.home-btn-text{display:flex;flex-direction:column;gap:2px}
+.home-btn-label{font-size:16px;font-weight:700}
+.home-btn-desc{font-size:12px;font-weight:400;opacity:.65}
+.home-logout{margin-top:12px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline}
+
 /* ── LOGIN ── */
 #loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;background:linear-gradient(160deg,#1565C0,#0D47A1)}
 .login-logo{font-size:52px;margin-bottom:16px}
@@ -193,6 +211,31 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 </head>
 <body>
 
+<!-- ══ ÉCRAN ACCUEIL ══ -->
+<div id="homeScreen">
+  <div class="home-logo">📋</div>
+  <div class="home-title">Rapport Réclamations</div>
+  <div class="home-sub">Bienvenue</div>
+  <div class="home-user" id="homeUserChip"></div>
+  <div class="home-card">
+    <button class="home-btn home-btn-new" onclick="goToNewRapport()">
+      <div class="home-btn-icon">✏️</div>
+      <div class="home-btn-text">
+        <span class="home-btn-label">Nouveau rapport</span>
+        <span class="home-btn-desc">Créer un rapport de visite</span>
+      </div>
+    </button>
+    <button class="home-btn home-btn-hist" onclick="goToHistorique()">
+      <div class="home-btn-icon">📁</div>
+      <div class="home-btn-text">
+        <span class="home-btn-label">Historique des rapports</span>
+        <span class="home-btn-desc" id="homeHistDesc">Consulter vos rapports</span>
+      </div>
+    </button>
+  </div>
+  <button class="home-logout" onclick="doLogout()">Se déconnecter</button>
+</div>
+
 <!-- ══ ÉCRAN LOGIN ══ -->
 <div id="loginScreen">
   <div class="login-logo">📋</div>
@@ -227,8 +270,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   </div>
   <div id="userChip" class="user-chip"></div>
   <div class="tab-bar">
-    <button class="tab active" onclick="switchTab('nouveau')">Nouveau</button>
-    <button class="tab" id="tab-hist" onclick="switchTab('historique')">Historique</button>
+    <button class="tab active" id="tab-nouveau-btn" onclick="switchTab('nouveau')">Nouveau</button>
+    <button class="tab" id="tab-hist" onclick="switchTabWithConfirm('historique')">Historique</button>
   </div>
 </div>
 
@@ -297,6 +340,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         Saisir les réclamations
       </button>
+      <div style="margin-top:10px">
+        <button class="btn btn-ghost" onclick="confirmExitRapport()" style="color:#FF3B30;border-color:#FFD7D5;font-size:13px;padding:11px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          Sortir du rapport
+        </button>
+      </div>
     </div>
   </div>
 
@@ -320,6 +369,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <button class="btn btn-primary" onclick="goPage(2)" style="flex:1">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         Observations générales
+      </button>
+    </div>
+    <div style="margin:10px 12px 0">
+      <button class="btn btn-ghost" onclick="confirmExitRapport()" style="color:#FF3B30;border-color:#FFD7D5;font-size:13px;padding:11px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        Sortir du rapport
       </button>
     </div>
   </div>
@@ -358,6 +413,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         Signatures &amp; finalisation
       </button>
     </div>
+    <div style="margin:10px 12px 0">
+      <button class="btn btn-ghost" onclick="confirmExitRapport()" style="color:#FF3B30;border-color:#FFD7D5;font-size:13px;padding:11px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        Sortir du rapport
+      </button>
+    </div>
   </div>
 
   <!-- Page 3 : Signatures -->
@@ -387,9 +448,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           Générer &amp; sauvegarder
         </button>
       </div>
-      <button class="btn btn-ghost" onclick="resetAll()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 101.85-7.72L1 10"/></svg>
-        &nbsp;Nouveau rapport
+      <button class="btn btn-ghost" onclick="confirmExitRapport()" style="color:#FF3B30;border-color:#FFD7D5;font-size:13px;padding:11px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        Sortir du rapport sans enregistrer
       </button>
     </div>
   </div>
@@ -460,33 +521,93 @@ async function doLogout(){
   await supa.auth.signOut();
   currentUser=null;
   document.getElementById('mainApp').style.display='none';
+  document.getElementById('homeScreen').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
 }
 
 function onLogin(user){
   currentUser=user;
   document.getElementById('loginScreen').style.display='none';
-  document.getElementById('mainApp').style.display='block';
+  document.getElementById('mainApp').style.display='none';
+  // Show home screen
+  document.getElementById('homeScreen').style.display='flex';
+  document.getElementById('homeUserChip').textContent=user.email;
   document.getElementById('userChip').textContent=user.email;
-  document.getElementById('dateVisite').valueAsDate=new Date();
-  renderReclamations();
-  updateHistoryBadge();
+  // Update history badge in background
+  loadHistoryCount();
 }
 
 supa.auth.onAuthStateChange((event,session)=>{
   if(session?.user) onLogin(session.user);
   else{
     document.getElementById('mainApp').style.display='none';
+    document.getElementById('homeScreen').style.display='none';
     document.getElementById('loginScreen').style.display='flex';
   }
 });
 
-/* ══ TABS / PAGES ══ */
+/* ══ NAVIGATION ══ */
+let rapportEnCours = false; // true dès qu'une saisie est en cours
+
+function goToNewRapport(){
+  document.getElementById('homeScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  resetFormSilent();
+  switchTab('nouveau');
+  rapportEnCours=true;
+}
+
+function goToHistorique(){
+  document.getElementById('homeScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  switchTab('historique');
+}
+
+function goHome(){
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('homeScreen').style.display='flex';
+  rapportEnCours=false;
+}
+
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='nouveau'?0:1)));
   document.querySelectorAll('.main-page').forEach((el,i)=>el.classList.toggle('active',i===(t==='nouveau'?0:1)));
   if(t==='historique') loadHistory();
   window.scrollTo(0,0);
+}
+
+function switchTabWithConfirm(t){
+  // If in form with data, warn before switching to historique
+  if(t==='historique' && rapportEnCours && hasFormData()){
+    if(!confirm('⚠️ Attention !\n\nVous êtes en cours de saisie d\'un rapport.\n\nSi vous allez dans l\'historique sans avoir cliqué sur "Générer & sauvegarder", toutes vos saisies seront perdues.\n\nVoulez-vous quand même continuer ?')) return;
+  }
+  rapportEnCours=false;
+  switchTab(t);
+}
+
+function hasFormData(){
+  return !!(
+    document.getElementById('clientNom').value||
+    document.getElementById('clientPrenom').value||
+    document.getElementById('vendeurNom').value||
+    reclamations.length>0
+  );
+}
+
+function confirmExitRapport(){
+  if(confirm('⚠️ Sortir du rapport ?\n\nSi vous sortez sans avoir cliqué sur "Générer & sauvegarder", toutes vos saisies seront perdues définitivement.\n\nÊtes-vous sûr de vouloir sortir ?')){
+    resetFormSilent();
+    goHome();
+  }
+}
+
+async function loadHistoryCount(){
+  if(!currentUser)return;
+  const{count}=await supa.from('rapports').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id);
+  if(count>0){
+    document.getElementById('homeHistDesc').textContent=`${count} rapport${count>1?'s':''} sauvegardé${count>1?'s':''}`;
+    document.getElementById('tab-hist').textContent=`Historique (${count})`;
+  }
 }
 
 function goPage(n){
@@ -792,6 +913,8 @@ function confirmDelete(id){if(confirm('Supprimer ce rapport définitivement ?'))
 
 function editRapport(id){
   const data=historyCache.find(r=>r.id===id);if(!data)return;
+  const confirmed=confirm('✏️ Modifier ce rapport ?\n\nAttention : les signatures seront effacées car vous devrez re-signer avec le client.\n\nAssurez-vous d\'être en présence du client avant de modifier.\n\nL\'ancien rapport sera conservé dans l\'historique — une nouvelle version sera créée à la sauvegarde.\n\nVoulez-vous continuer ?');
+  if(!confirmed)return;
   closeSheetDirect();
   document.getElementById('dateVisite').value=data.date_visite||'';
   document.getElementById('vendeurNom').value=data.vendeur_nom||'';
@@ -806,9 +929,16 @@ function editRapport(id){
   document.getElementById('obsClientNone').checked=!!obs.clientNone;
   if(obs.vendeurNone){document.getElementById('obsVendeur').disabled=true;document.getElementById('obsVendeur').style.opacity='.4';}
   if(obs.clientNone){document.getElementById('obsClient').disabled=true;document.getElementById('obsClient').style.opacity='.4';}
+  // Signatures effacées — nouveau rapport sera créé à la sauvegarde
+  ['sigVendeur','sigClient'].forEach(sid=>{clearSig(sid);delete sigCtx[sid];});
   renderReclamations();
-  switchTab('nouveau');goPage(0);
-  showToast('✏️ Rapport chargé pour modification');
+  // Go to app in nouveau mode (original kept in Supabase)
+  document.getElementById('homeScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  switchTab('nouveau');
+  goPage(0);
+  rapportEnCours=true;
+  showToast('✏️ Rapport chargé — original conservé');
 }
 
 /* ══ VUE PDF ══ */
@@ -1019,21 +1149,31 @@ async function generateAndSave(){
   };
   downloadPDF(normalized);
   showToast('✅ Sauvegardé dans Supabase !');
-  // Refresh history cache
+  rapportEnCours=false;
+  // Refresh history cache and count
   await loadHistory();
+  await loadHistoryCount();
   updateHistoryBadge();
+  // Go home after short delay
+  setTimeout(()=>goHome(),1200);
+}
+
+function resetFormSilent(){
+  ['dateVisite','vendeurNom','clientPrenom','clientNom','adresse'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const dv=document.getElementById('dateVisite');if(dv)dv.valueAsDate=new Date();
+  ['obsVendeur','obsClient'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.disabled=false;el.style.opacity='1';}});
+  const ovn=document.getElementById('obsVendeurNone');if(ovn)ovn.checked=false;
+  const ocn=document.getElementById('obsClientNone');if(ocn)ocn.checked=false;
+  const oa=document.getElementById('obsAnnotation');if(oa)oa.style.display='none';
+  reclamations=[];renderReclamations();
+  ['sigVendeur','sigClient'].forEach(id=>{clearSig(id);delete sigCtx[id];});
+  goPage(0);
 }
 
 function resetAll(){
   if(!confirm('Réinitialiser le formulaire ?'))return;
-  ['dateVisite','vendeurNom','clientPrenom','clientNom','adresse'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('dateVisite').valueAsDate=new Date();
-  ['obsVendeur','obsClient'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).disabled=false;document.getElementById(id).style.opacity='1';});
-  document.getElementById('obsVendeurNone').checked=false;document.getElementById('obsClientNone').checked=false;
-  document.getElementById('obsAnnotation').style.display='none';
-  reclamations=[];renderReclamations();
-  ['sigVendeur','sigClient'].forEach(id=>{clearSig(id);delete sigCtx[id];});
-  goPage(0);showToast('Formulaire réinitialisé');
+  resetFormSilent();
+  showToast('Formulaire réinitialisé');
 }
 </script>
 </body>
