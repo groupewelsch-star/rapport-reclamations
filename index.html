@@ -24,10 +24,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-s
 .home-card{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:14px}
 .home-btn{display:flex;align-items:center;gap:16px;padding:18px 20px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;width:100%;transition:.12s;text-align:left}
 .home-btn:active{transform:scale(.97)}
-.home-btn-new{background:#1C1C1E;color:#fff}
-.home-btn-hist{background:#F2F2F7;color:#1C1C1E}
-.home-btn-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(255,255,255,.15)}
-.home-btn-hist .home-btn-icon{background:#E3F2FD}
+.home-btn-new{background:var(--blue);color:#fff}
+.home-btn-hist{background:var(--blue);color:#fff}
+.home-btn-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(255,255,255,.18)}
+.home-btn-hist .home-btn-icon{background:rgba(255,255,255,.18)}
 .home-btn-text{display:flex;flex-direction:column;gap:2px}
 .home-btn-label{font-size:16px;font-weight:700}
 .home-btn-desc{font-size:12px;font-weight:400;opacity:.65}
@@ -48,9 +48,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-s
 .login-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--gray)}
 .login-switch a{color:var(--blue);font-weight:600;cursor:pointer;text-decoration:none}
 
+.back-menu-btn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;margin-bottom:2px}
+.back-menu-btn:active{opacity:.75}
+
 /* ── HEADER ── */
 .header{background:linear-gradient(160deg,#1565C0 0%,#0D47A1 100%);color:#fff;padding:20px 16px 0;text-align:center;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(13,71,161,.35)}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.header-top{display:flex;align-items:center;justify-content:center;margin-bottom:4px}
 .header h1{font-size:17px;font-weight:700;letter-spacing:.3px;flex:1;text-align:center}
 .logout-btn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
 .user-chip{background:rgba(255,255,255,.15);border-radius:20px;padding:3px 10px;font-size:11px;color:rgba(255,255,255,.85);margin-bottom:4px;display:inline-block}
@@ -264,14 +267,14 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <div class="header">
   <div class="header-top">
-    <div style="width:80px"></div>
-    <h1>📋 Rapports</h1>
-    <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+    <h1>📋 Rapport Réclamations</h1>
   </div>
   <div id="userChip" class="user-chip"></div>
-  <div class="tab-bar">
-    <button class="tab active" id="tab-nouveau-btn" onclick="switchTab('nouveau')">Nouveau</button>
-    <button class="tab" id="tab-hist" onclick="switchTabWithConfirm('historique')">Historique</button>
+  <div style="padding:10px 0 0">
+    <button class="back-menu-btn" onclick="confirmBackToMenu()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Retour au menu
+    </button>
   </div>
 </div>
 
@@ -549,6 +552,16 @@ supa.auth.onAuthStateChange((event,session)=>{
 /* ══ NAVIGATION ══ */
 let rapportEnCours = false; // true dès qu'une saisie est en cours
 
+function confirmBackToMenu(){
+  // Si on est en saisie, demander confirmation
+  const onNouveau=document.getElementById('tab-nouveau').classList.contains('active');
+  if(onNouveau && rapportEnCours && hasFormData()){
+    if(!confirm('⚠️ Retour au menu ?\n\nSi vous revenez au menu sans avoir cliqué sur "Générer & sauvegarder", toutes vos saisies seront perdues.\n\nVoulez-vous quand même revenir au menu ?')) return;
+  }
+  rapportEnCours=false;
+  goHome();
+}
+
 function goToNewRapport(){
   document.getElementById('homeScreen').style.display='none';
   document.getElementById('mainApp').style.display='block';
@@ -570,16 +583,15 @@ function goHome(){
 }
 
 function switchTab(t){
-  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='nouveau'?0:1)));
   document.querySelectorAll('.main-page').forEach((el,i)=>el.classList.toggle('active',i===(t==='nouveau'?0:1)));
   if(t==='historique') loadHistory();
   window.scrollTo(0,0);
 }
 
 function switchTabWithConfirm(t){
-  // If in form with data, warn before switching to historique
+  // kept for compatibility but no longer used in UI
   if(t==='historique' && rapportEnCours && hasFormData()){
-    if(!confirm('⚠️ Attention !\n\nVous êtes en cours de saisie d\'un rapport.\n\nSi vous allez dans l\'historique sans avoir cliqué sur "Générer & sauvegarder", toutes vos saisies seront perdues.\n\nVoulez-vous quand même continuer ?')) return;
+    if(!confirm('⚠️ Attention !\n\nVous êtes en cours de saisie. Si vous continuez sans sauvegarder, vos saisies seront perdues.\n\nVoulez-vous continuer ?')) return;
   }
   rapportEnCours=false;
   switchTab(t);
@@ -606,7 +618,6 @@ async function loadHistoryCount(){
   const{count}=await supa.from('rapports').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id);
   if(count>0){
     document.getElementById('homeHistDesc').textContent=`${count} rapport${count>1?'s':''} sauvegardé${count>1?'s':''}`;
-    document.getElementById('tab-hist').textContent=`Historique (${count})`;
   }
 }
 
@@ -869,8 +880,9 @@ function renderHistory(){
 }
 
 function updateHistoryBadge(){
+  // Update home screen description
   const n=historyCache.length;
-  document.getElementById('tab-hist').textContent=n>0?`Historique (${n})`:'Historique';
+  if(n>0) document.getElementById('homeHistDesc').textContent=`${n} rapport${n>1?'s':''} sauvegardé${n>1?'s':''}`;
 }
 
 /* ══ BOTTOM SHEET ══ */
