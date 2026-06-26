@@ -956,7 +956,9 @@ function editRapport(id){
 /* ══ VUE PDF ══ */
 function openPdfView(id){
   const raw=historyCache.find(r=>r.id===id);if(!raw)return;
-  currentPdfId=id;closeSheetDirect();
+  currentPdfId=id;
+  // Ne pas fermer le sheet — on le cache temporairement pour revenir dessus
+  document.getElementById('sheetOverlay').style.display='none';
   // Normalize keys for display/pdf
   const data={
     id:raw.id,
@@ -1019,7 +1021,17 @@ function openPdfView(id){
   document.getElementById('pdfOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
-function closePdfView(){document.getElementById('pdfOverlay').classList.remove('open');document.body.style.overflow='';currentPdfId=null;}
+function closePdfView(){
+  document.getElementById('pdfOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  // Réouvrir le bottom sheet du rapport
+  if(currentPdfId){
+    document.getElementById('sheetOverlay').style.display='flex';
+    document.getElementById('sheetOverlay').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  currentPdfId=null;
+}
 
 /* ══ DOWNLOAD / SHARE ══ */
 function getNormalizedData(id){
