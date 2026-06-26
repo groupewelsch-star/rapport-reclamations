@@ -103,7 +103,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 /* ── SIGNATURES ── */
 .sig-wrap{border:1.5px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
-.sig-wrap canvas{display:block;width:100%;height:140px;touch-action:none}
+.sig-wrap canvas{display:block;width:100%;height:200px;touch-action:none}
 .sig-lbl{font-size:11px;color:var(--gray);text-align:center;padding:7px;background:#F8F9FA;border-top:1px solid var(--border)}
 .sig-actions{display:flex;gap:8px;margin:8px 0 16px}
 .sig-sep{text-align:center;font-size:11px;color:var(--gray);margin:14px 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
@@ -166,10 +166,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .sheet-photos{display:flex;gap:8px;overflow-x:auto;padding:12px 20px;scrollbar-width:none}
 .sheet-photos::-webkit-scrollbar{display:none}
 .sheet-photos img{width:90px;height:90px;object-fit:cover;border-radius:10px;flex-shrink:0;border:1.5px solid var(--border)}
-.sheet-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:20px 20px 12px}
+.sheet-actions{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;padding:20px 16px 12px}
 .sheet-action{display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;cursor:pointer;padding:0}
-.sa-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center}
-.sa-label{font-size:12px;font-weight:600;color:#1C1C1E}
+.sa-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center}
+.sa-label{font-size:11px;font-weight:600;color:#1C1C1E;text-align:center}
 .icon-black{background:#1C1C1E}
 .icon-light{background:#F2F2F7}
 .icon-red{background:#FFE5E3}
@@ -391,10 +391,14 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       </div>
       <div class="obs-block">
         <span class="obs-label">👤 Observation du vendeur</span>
-        <textarea id="obsVendeur" rows="4" placeholder="Observations du vendeur…" oninput="updateObsAnnotation()"></textarea>
+        <label class="obs-check-row" for="obsVendeurPhrase" style="margin-bottom:10px;background:#EEF4FF;border:1.5px solid #BBDEFB;border-radius:10px;padding:10px 12px;align-items:flex-start;gap:10px">
+          <input type="checkbox" id="obsVendeurPhrase" checked onchange="updateObsAnnotation()" style="margin-top:2px">
+          <span style="font-size:12px;color:#1565C0;line-height:1.5;font-style:italic">"Les constatations réalisées lors de nos vérifications ainsi que l'analyse des éléments du dossier ne permettent pas d'établir l'existence d'un défaut de fabrication, d'une non-conformité de pose, d'un défaut d'étanchéité ou d'un dommage imputable aux opérations de livraison ou de manutention."</span>
+        </label>
+        <textarea id="obsVendeur" rows="4" placeholder="Observations complémentaires du vendeur…" oninput="updateObsAnnotation()"></textarea>
         <label class="obs-check-row" for="obsVendeurNone">
           <input type="checkbox" id="obsVendeurNone" onchange="toggleObs('vendeur')">
-          <span>Le vendeur n'a pas d'observation</span>
+          <span>Le vendeur n'a pas d'observation complémentaire</span>
         </label>
       </div>
       <div class="obs-block">
@@ -646,15 +650,26 @@ function toggleObs(who){
   updateObsAnnotation();
 }
 
+const PHRASE_STD = "Les constatations réalisées lors de nos vérifications ainsi que l'analyse des éléments du dossier ne permettent pas d'établir l'existence d'un défaut de fabrication, d'une non-conformité de pose, d'un défaut d'étanchéité ou d'un dommage imputable aux opérations de livraison ou de manutention.";
+
+function getVendeurObsText(){
+  const phraseChecked=document.getElementById('obsVendeurPhrase').checked;
+  const manualText=(document.getElementById('obsVendeur').value||'').trim();
+  const parts=[];
+  if(phraseChecked) parts.push(PHRASE_STD);
+  if(manualText) parts.push(manualText);
+  return parts.join('\n\n');
+}
+
 function updateObsAnnotation(){
   const vNone=document.getElementById('obsVendeurNone').checked;
   const cNone=document.getElementById('obsClientNone').checked;
-  const vText=(document.getElementById('obsVendeur').value||'').trim();
+  const vText=getVendeurObsText();
   const cText=(document.getElementById('obsClient').value||'').trim();
   const ann=document.getElementById('obsAnnotation');
   let lines=[];
   if(vNone)lines.push('✅ Vendeur : aucune observation');
-  else if(vText)lines.push('📝 Vendeur : observation saisie');
+  else if(vText)lines.push('📝 Vendeur : observation renseignée');
   if(cNone)lines.push('✅ Client : aucune observation');
   else if(cText)lines.push('📝 Client : observation saisie');
   if(lines.length){ann.innerHTML='<strong>Récapitulatif :</strong><br>'+lines.join('<br>');ann.style.display='block';}
@@ -664,7 +679,7 @@ function updateObsAnnotation(){
 function buildSigObsNote(){
   const vNone=document.getElementById('obsVendeurNone').checked;
   const cNone=document.getElementById('obsClientNone').checked;
-  const vText=(document.getElementById('obsVendeur').value||'').trim();
+  const vText=getVendeurObsText();
   const cText=(document.getElementById('obsClient').value||'').trim();
   const el=document.getElementById('sigObsNote');
   let parts=[];
@@ -908,6 +923,10 @@ function openSheet(id){
       <div class="sa-icon icon-black"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
       <span class="sa-label">Voir PDF</span>
     </button>
+    <button class="sheet-action" onclick="shareFromSheet('${id}')">
+      <div class="sa-icon icon-black"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+      <span class="sa-label">Envoyer</span>
+    </button>
     <button class="sheet-action" onclick="editRapport('${id}')">
       <div class="sa-icon icon-light"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1C1C1E" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
       <span class="sa-label">Modifier</span>
@@ -939,7 +958,9 @@ function editRapport(id){
   document.getElementById('adresse').value=data.adresse||'';
   reclamations=JSON.parse(JSON.stringify(data.reclamations||[]));
   const obs=data.observations||{};
-  document.getElementById('obsVendeur').value=obs.vendeurText||'';
+  // Restaurer la phrase standard (cochée par défaut si pas d'info sauvegardée)
+  document.getElementById('obsVendeurPhrase').checked = obs.vendeurPhrase !== false;
+  document.getElementById('obsVendeur').value=obs.vendeurManual||'';
   document.getElementById('obsClient').value=obs.clientText||'';
   document.getElementById('obsVendeurNone').checked=!!obs.vendeurNone;
   document.getElementById('obsClientNone').checked=!!obs.clientNone;
@@ -1046,6 +1067,37 @@ function getNormalizedData(id){
     vendeurNom:raw.vendeur_nom,clientPrenom:raw.client_prenom,clientNom:raw.client_nom,adresse:raw.adresse,
     reclamations:raw.reclamations||[],observations:raw.observations||{},signatures:raw.signatures||{}
   };
+}
+
+async function shareFromSheet(id){
+  const raw=historyCache.find(r=>r.id===id);if(!raw)return;
+  const data=getNormalizedData(id);if(!data)return;
+  // Essayer Web Share API avec PDF
+  if(typeof window.jspdf!=='undefined'&&navigator.share&&navigator.canShare){
+    try{
+      showToast('⏳ Préparation du PDF…');
+      const doc=buildPDFDoc(data);
+      const blob=doc.output('blob');
+      const ds=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR').replace(/\//g,'-'):'date';
+      const fname=`rapport_${data.clientNom||'client'}_${ds}.pdf`;
+      const file=new File([blob],fname,{type:'application/pdf'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({title:'Rapport de visite — '+(data.clientPrenom||'')+' '+(data.clientNom||''),files:[file]});
+        return;
+      }
+    }catch(e){if(e.name!=='AbortError')console.warn(e);}
+  }
+  // Fallback mailto
+  const date=data.dateVisite?new Date(data.dateVisite+'T00:00:00').toLocaleDateString('fr-FR'):'—';
+  const client=((data.clientPrenom||'')+' '+(data.clientNom||'')).trim()||'Client';
+  const obs=data.observations||{};
+  let body=`Bonjour,\n\nRAPPORT DE VISITE\n${'─'.repeat(28)}\nDate : ${date}\nVendeur : ${data.vendeurNom||'—'}\nClient : ${client}\nAdresse : ${data.adresse||'—'}\n\n`;
+  body+=`OBSERVATIONS\n${'─'.repeat(28)}\nVendeur : ${obs.vendeurNone?'Aucune':(obs.vendeurText||'Non renseigné')}\nClient : ${obs.clientNone?'Aucune':(obs.clientText||'Non renseigné')}\n\n`;
+  body+=`DÉSORDRES (${data.reclamations.length})\n${'─'.repeat(28)}\n`;
+  data.reclamations.forEach((r,i)=>{body+=`${i+1}. ${recLabelFromData(r)}\n`;if(r.obs)body+=`   › ${r.obs}\n`;});
+  body+=`\nGénéré le ${new Date().toLocaleDateString('fr-FR')}`;
+  window.location.href=`mailto:?subject=${encodeURIComponent('Rapport de visite — '+client+' — '+date)}&body=${encodeURIComponent(body)}`;
+  showToast('📧 Ouverture messagerie…');
 }
 
 function doDownload(){if(!currentPdfId)return;const data=getNormalizedData(currentPdfId);if(data)downloadPDF(data);}
@@ -1155,7 +1207,9 @@ async function generateAndSave(){
     adresse:document.getElementById('adresse').value,
     reclamations:JSON.parse(JSON.stringify(reclamations)),
     observations:{
-      vendeurText:document.getElementById('obsVendeur').value,
+      vendeurText:getVendeurObsText(),
+      vendeurPhrase:document.getElementById('obsVendeurPhrase').checked,
+      vendeurManual:document.getElementById('obsVendeur').value,
       vendeurNone:document.getElementById('obsVendeurNone').checked,
       clientText:document.getElementById('obsClient').value,
       clientNone:document.getElementById('obsClientNone').checked
@@ -1193,6 +1247,7 @@ function resetFormSilent(){
   ['obsVendeur','obsClient'].forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.disabled=false;el.style.opacity='1';}});
   const ovn=document.getElementById('obsVendeurNone');if(ovn)ovn.checked=false;
   const ocn=document.getElementById('obsClientNone');if(ocn)ocn.checked=false;
+  const op=document.getElementById('obsVendeurPhrase');if(op)op.checked=true; // cochée par défaut
   const oa=document.getElementById('obsAnnotation');if(oa)oa.style.display='none';
   reclamations=[];renderReclamations();
   ['sigVendeur','sigClient'].forEach(id=>{clearSig(id);delete sigCtx[id];});
