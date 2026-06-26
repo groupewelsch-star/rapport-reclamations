@@ -1128,6 +1128,27 @@ async function doShare(){
 
 /* ══ PDF BUILD ══ */
 function buildPDFDoc(data){
+  // ── Fonction texte justifié ──
+  function justifiedText(doc, text, x, y, maxWidth, lineHeight){
+    const lines = doc.splitTextToSize(text, maxWidth);
+    lines.forEach((line, idx) => {
+      const isLast = idx === lines.length - 1;
+      if(isLast || line.trim() === ''){
+        doc.text(line, x, y + idx * lineHeight);
+        return;
+      }
+      const words = line.split(' ');
+      if(words.length <= 1){ doc.text(line, x, y + idx * lineHeight); return; }
+      const lineW = doc.getTextWidth(line.replace(/ /g,''));
+      const spaceW = (maxWidth - lineW) / (words.length - 1);
+      let cx = x;
+      words.forEach((word, wi) => {
+        doc.text(word, cx, y + idx * lineHeight);
+        cx += doc.getTextWidth(word) + spaceW;
+      });
+    });
+    return lines.length;
+  }
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
   const PW=210,M=14,CW=PW-2*M;let y=M;
@@ -1149,7 +1170,7 @@ function buildPDFDoc(data){
     const r=data.reclamations[i];if(y>260){doc.addPage();y=M;}
     doc.setFillColor(...blue);doc.roundedRect(M,y,CW,9,2,2,'F');doc.setTextColor(...white);doc.setFontSize(10);doc.setFont('helvetica','bold');
     doc.text(`Réclamation ${i+1} — ${recLabelFromData(r)}`,M+3,y+6.2,{maxWidth:CW-6});y+=11;
-    if(r.obs){const lines=doc.splitTextToSize(r.obs,CW-8);const h=lines.length*5+8;doc.setFillColor(250,250,250);doc.setDrawColor(...gray);doc.setLineWidth(0.2);doc.roundedRect(M,y,CW,h,2,2,'FD');doc.setTextColor(26,26,46);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(lines,M+4,y+6);y+=h+3;}
+    if(r.obs){const lines=doc.splitTextToSize(r.obs,CW-8);const h=lines.length*5+8;doc.setFillColor(250,250,250);doc.setDrawColor(...gray);doc.setLineWidth(0.2);doc.roundedRect(M,y,CW,h,2,2,'FD');doc.setTextColor(26,26,46);doc.setFontSize(9);doc.setFont('helvetica','normal');justifiedText(doc,r.obs,M+4,y+6,CW-8,5);y+=h+3;}
     if(r.photos&&r.photos.length){const phW=(CW-4)/2,phH=55;let px=M,col=0;for(const ph of r.photos){if(y+phH>278){doc.addPage();y=M;px=M;col=0;}try{doc.addImage(ph,'JPEG',px,y,phW,phH,'','FAST');doc.setDrawColor(...gray);doc.setLineWidth(0.15);doc.rect(px,y,phW,phH);}catch(e){}col++;if(col%2===0){px=M;y+=phH+4;}else px=M+phW+4;}if(col%2!==0)y+=phH+4;}
     y+=4;if(y<263){doc.setDrawColor(...ltB);doc.setLineWidth(0.4);doc.line(M,y-2,M+CW,y-2);}
   }
@@ -1161,7 +1182,7 @@ function buildPDFDoc(data){
     if(y+h>275){doc.addPage();y=M;}
     doc.setFillColor(250,250,250);doc.setDrawColor(...gray);doc.setLineWidth(0.2);doc.roundedRect(M,y,CW,h,2,2,'FD');
     doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...gray);doc.text(lbl.toUpperCase(),M+4,y+5);
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,26,46);doc.text(lines,M+4,y+11);y+=h+4;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,26,46);justifiedText(doc,txt,M+4,y+11,CW-8,5);y+=h+4;
   });
   if(y>225){doc.addPage();y=M;}y+=4;
   doc.setTextColor(...blue);doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('Signatures',M,y+6);y+=12;
