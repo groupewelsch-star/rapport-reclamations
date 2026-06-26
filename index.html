@@ -920,7 +920,11 @@ function openSheet(id){
   document.body.style.overflow='hidden';
 }
 function closeSheet(e){if(e.target===document.getElementById('sheetOverlay'))closeSheetDirect();}
-function closeSheetDirect(){document.getElementById('sheetOverlay').classList.remove('open');document.body.style.overflow='';}
+function closeSheetDirect(){
+  document.getElementById('sheetOverlay').classList.remove('open');
+  document.getElementById('sheetOverlay').style.display='';
+  document.body.style.overflow='';
+}
 function confirmDelete(id){if(confirm('Supprimer ce rapport définitivement ?')){closeSheetDirect();deleteFromSupabase(id);}}
 
 function editRapport(id){
@@ -957,7 +961,7 @@ function editRapport(id){
 function openPdfView(id){
   const raw=historyCache.find(r=>r.id===id);if(!raw)return;
   currentPdfId=id;
-  // Ne pas fermer le sheet — on le cache temporairement pour revenir dessus
+  // Masquer le sheet sans le fermer — on y reviendra après
   document.getElementById('sheetOverlay').style.display='none';
   // Normalize keys for display/pdf
   const data={
@@ -1023,11 +1027,12 @@ function openPdfView(id){
 }
 function closePdfView(){
   document.getElementById('pdfOverlay').classList.remove('open');
-  document.body.style.overflow='';
-  // Réouvrir le bottom sheet du rapport
+  // Remettre le sheet visible si un rapport était ouvert
   if(currentPdfId){
-    document.getElementById('sheetOverlay').style.display='flex';
-    document.getElementById('sheetOverlay').classList.add('open');
+    const overlay=document.getElementById('sheetOverlay');
+    overlay.style.display='flex';
+    // S'assurer que la classe open est bien là
+    overlay.classList.add('open');
     document.body.style.overflow='hidden';
   }
   currentPdfId=null;
